@@ -1,0 +1,44 @@
+extends ../layout/administrador
+
+block contenido
+    div(class="m-4 sm:m-10 mx-auto max-w-xs sm:max-w-full overflow-hidden")
+        div(class="bg-white rounded-lg shadow-lg p-8 w-full overflow-x-auto overflow-y-auto max-h-[500px]")
+            h2(class="text-2xl font-title text-black mb-4 text-center") Lista de Revistas
+
+            // Mensajes flash
+            if locals.messages
+                each category in Object.keys(locals.messages)
+                    each message in locals.messages[category]
+                        div(class=`mb-4 p-2 rounded ${category === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`)= message
+
+            // Contenedor con scroll horizontal
+            div(class="overflow-x-auto rounded-lg border border-gray-200 w-full")
+                table(class="w-full min-w-full bg-white")
+                    thead(class="bg-gray-100")
+                        tr
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") Título
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") PDF
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") Portada
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") Fecha
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") Tamaño
+                            th(class="py-3 px-4 text-left text-sm font-semibold text-gray-700") Acciones
+                    tbody
+                        each revista in revistas
+                            - const fechaFormateada = new Date(revista.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                            - const tamañoMB = (revista.tamanio / (1024 * 1024)).toFixed(2)
+                            tr(class="hover:bg-gray-50")
+                                td(class="py-3 px-4 border-b text-sm text-gray-700")= revista.titulo
+                                td(class="py-3 px-4 border-b text-sm text-gray-700")
+                                    a(href=revista.url, target="_blank", class="text-blue-500 hover:underline") Ver PDF
+                                td(class="py-3 px-4 border-b")
+                                    img(src=revista.imagen, alt=revista.titulo, class="w-16 h-16 object-cover rounded")
+                                td(class="py-3 px-4 border-b text-sm text-gray-700")= fechaFormateada
+                                td(class="py-3 px-4 border-b text-sm text-gray-700")= `${tamañoMB} MB`
+                                td(class="py-3 px-4 border-b text-sm text-gray-700 flex gap-2")
+                                    a(href=`/admin/editar-pdf/${revista.id}`, class="text-blue-500 hover:text-blue-700") Editar
+                                    form(action=`/admin/eliminar-revista/${revista.id}`, method="POST" class="inline")
+                                        button(type="submit" class="text-red-500 hover:text-red-700") Eliminar
+
+            // Botón para crear nueva revista
+            div(class="mt-4 text-center")
+                a(href="/admin/agregar-pdf" class="inline-block bg-principal text-white py-2 px-4 rounded hover:bg-green-700") Crear Nueva Revista

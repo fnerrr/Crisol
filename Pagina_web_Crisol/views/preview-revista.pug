@@ -1,0 +1,107 @@
+extends ./layout/inicio_html
+
+block contenido
+    div(class="min-h-screen bg-gray-50 py-8 px-1 sm:px-6 lg:px-8")
+        div(class="max-w-6xl mx-auto rounded-lg")
+            div(class="shadow-xl overflow-hidden")
+                div(class="p-4 sm:p-8")
+                    div(class="flex flex-col sm:flex-row justify-between items-start mb-6 gap-4")
+                        h1(class="text-2xl sm:text-3xl font-bold text-gray-900")= revista.titulo
+                        a(href=`/revistas/descargar/${revista.id}` class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700")
+                            | Descargar PDF
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+
+                    if revista.descripcion
+                        p(class="text-gray-600 mb-6")= revista.descripcion
+
+                    div(class="border-t border-gray-200 pt-6")
+                        h2(class="text-lg font-medium text-gray-900 mb-4") Vista previa
+
+                        // Contenedor principal del PDF con márgenes responsivos
+                        div(class="w-full bg-gray-100 rounded-lg overflow-hidden mx-0.5 sm:mx-2.5" style="height: 80vh; min-height: 500px; position: relative;")
+                            // Visor nativo con controles mejorados
+                            iframe(
+                                id="pdfViewer"
+                                src=`${revista.url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH` 
+                                class="w-full h-full hidden" 
+                                frameborder="0" 
+                                allowfullscreen
+                                type="application/pdf"
+                                style="position: absolute; top: 0; left: 0;"
+                            )
+                            // Visor de Google Docs (para móviles) con mejoras
+                            iframe(
+                                id="googleViewer"
+                                src="" 
+                                class="w-full h-full hidden" 
+                                frameborder="0"
+                                style="position: absolute; top: 0; left: 0;"
+                            )
+                            // Mensaje de carga mejorado
+                            div(id="loadingMessage" class="w-full h-full flex items-center justify-center bg-gray-100")
+                                div(class="text-center")
+                                    <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    p(class="mt-3 text-gray-600") Cargando documento...
+
+                        div(class="mt-4 text-sm text-gray-500")
+                            p Si el PDF no se carga correctamente, puedes 
+                                a(href=revista.url class="text-indigo-600 hover:text-indigo-800 underline") descargarlo aquí
+                                | .
+
+    script.
+        document.addEventListener('DOMContentLoaded', function() {
+            const pdfViewer = document.getElementById('pdfViewer');
+            const googleViewer = document.getElementById('googleViewer');
+            const loadingMessage = document.getElementById('loadingMessage');
+            let currentViewer = null;
+
+            // Función mejorada para detectar dispositivos móviles
+            function isMobileDevice() {
+                return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+            }
+
+            // Función para cargar el visor adecuado
+            function loadViewer() {
+                // Solo recargar si el tipo de visor cambió
+                const shouldUseMobileViewer = isMobileDevice();
+                const viewerChanged = (shouldUseMobileViewer && currentViewer !== 'mobile') || 
+                                   (!shouldUseMobileViewer && currentViewer !== 'desktop');
+
+                if (!viewerChanged) return;
+
+                loadingMessage.classList.remove('hidden');
+                pdfViewer.classList.add('hidden');
+                googleViewer.classList.add('hidden');
+
+                if (shouldUseMobileViewer) {
+                    currentViewer = 'mobile';
+                    googleViewer.src = `https://docs.google.com/viewer?url=${encodeURIComponent('#{revista.url}')}&embedded=true&hl=es&t=${Date.now()}`;
+                    googleViewer.onload = function() {
+                        loadingMessage.classList.add('hidden');
+                        googleViewer.classList.remove('hidden');
+                    };
+                } else {
+                    currentViewer = 'desktop';
+                    pdfViewer.src = `#{revista.url}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`;
+                    pdfViewer.onload = function() {
+                        loadingMessage.classList.add('hidden');
+                        pdfViewer.classList.remove('hidden');
+                    };
+                }
+            }
+
+            // Cargar visor inicial
+            loadViewer();
+
+            // Manejar cambios de tamaño con debounce para mejor performance
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(loadViewer, 300);
+            });
+        });

@@ -1,0 +1,7 @@
+#Ignora node_modules
+node_modules/
+
+#Ignora variables
+.env
+
+codigo que puede servir/

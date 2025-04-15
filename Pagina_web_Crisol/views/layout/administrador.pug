@@ -1,0 +1,21 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(http-equiv="X-UA-Compatible" content="IE=edge")
+        meta(name="viewport" content="width=device-width, initial-scale=1.0")
+        title Crisol | #{pagina}
+        block styles
+        style.
+            #{styles}
+        link(rel="stylesheet" href="/css/app.css")
+        //- link(rel="stylesheet" href="/css/color.css")
+        link(rel="icon" href="/img/crisol.jpg")
+        script(src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer="defer")
+    body.bg-gray-100
+        include includes/header-admin
+        include includes/nav-admin 
+
+    main(class="mx-auto container mt-10 px-2")
+        block contenido
+        

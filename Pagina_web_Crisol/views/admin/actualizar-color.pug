@@ -1,0 +1,70 @@
+extends ../layout/administrador
+
+block contenido
+    div(class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6")
+        h1(class="text-2xl font-title mb-4 text-center") Configuración de Colores
+        form(action="/admin/actualizar-color" method="POST")
+            // Color Principal
+            div(class="mb-6")
+                label(for="color_principal" class="block text-sm font-medium text-gray-700 mb-2") Color Principal
+                div(class="flex items-center gap-2 mb-2")
+                    input(type="color" value=configuracion.color_principal id="color_principal" name="color_principal" class="w-12 h-12 rounded border-gray-300")
+                    input(type="text" value=configuracion.color_principal id="color_principal_hex" name="color_principal_hex" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" class="flex-1 px-3 py-2 border rounded-md" placeholder="#FFFFFF")
+                
+                // Selector rápido de colores
+                div(class="grid grid-cols-6 gap-2 mt-2")
+                        //- each color in ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                        //-     div(
+                        //-         style=`background-color: ${color}`
+                        //-         class="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-200 hover:border-gray-400"
+                        //-         onclick=`document.getElementById('color_principal').value='${color}';document.getElementById('color_principal_hex').value='${color}'`
+                        //-     )
+
+            // Color Texto Primario
+            div(class="mb-6")
+                label(for="color_textoPrimario" class="block text-sm font-medium text-gray-700 mb-2") Color de Texto Primario
+                div(class="flex items-center gap-2 mb-2")
+                    input(type="color" value=configuracion.color_textoPrimario id="color_textoPrimario" name="color_textoPrimario" class="w-12 h-12 rounded border-gray-300")
+                    input(type="text" value=configuracion.color_textoPrimario id="color_textoPrimario_hex" name="color_textoPrimario_hex" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" class="flex-1 px-3 py-2 border rounded-md" placeholder="#000000")
+                
+                div(class="grid grid-cols-6 gap-2 mt-2")
+                        //- each color in ['#000000', '#333333', '#666666', '#FFFFFF', '#F3F4F6', '#1F2937']
+                        //-     div(
+                        //-         style=`background-color: ${color}`
+                        //-         class="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-200 hover:border-gray-400"
+                        //-         onclick=`document.getElementById('color_textoPrimario').value='${color}';document.getElementById('color_textoPrimario_hex').value='${color}'`
+                        //-     )
+
+            // Color Texto Secundario
+            div(class="mb-6")
+                label(for="color_textoSecundario" class="block text-sm font-medium text-gray-700 mb-2") Color de Texto Secundario
+                div(class="flex items-center gap-2 mb-2")
+                    input(type="color" value=configuracion.color_textoSecundario id="color_textoSecundario" name="color_textoSecundario" class="w-12 h-12 rounded border-gray-300")
+                    input(type="text" value=configuracion.color_textoSecundario id="color_textoSecundario_hex" name="color_textoSecundario_hex" pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" class="flex-1 px-3 py-2 border rounded-md" placeholder="#666666")
+                
+                //- div(class="grid grid-cols-6 gap-2 mt-2")
+                //-     each color in ['#666666', '#999999', '#CCCCCC', '#6B7280', '#9CA3AF', '#D1D5DB']
+                //-         div(
+                //-             style=`background-color: ${color}`
+                //-             class="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-200 hover:border-gray-400"
+                //-             onclick=`document.getElementById('color_textoSecundario').value='${color}';document.getElementById('color_textoSecundario_hex').value='${color}'`
+                //-         )
+
+            div(class="flex justify-end")
+                button(type="submit" class="bg-principal text-white px-4 py-2 rounded-md hover:bg-green-600 w-full sm:w-auto") Actualizar Colores
+
+    script.
+        // Sincronizar inputs color y texto
+        document.querySelectorAll('input[type="color"]').forEach(colorInput => {
+            const hexInput = document.getElementById(`${colorInput.id}_hex`);
+            
+            colorInput.addEventListener('input', () => {
+                hexInput.value = colorInput.value;
+            });
+            
+            hexInput.addEventListener('input', () => {
+                if(/^#[0-9A-F]{6}$/i.test(hexInput.value)) {
+                    colorInput.value = hexInput.value;
+                }
+            });
+        });

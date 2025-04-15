@@ -1,0 +1,49 @@
+extends ../layout/administrador
+
+block contenido
+    div(class="flex justify-center items-center")
+        div(class="shadow-xl mx-auto max-w-md overflow-hidden rounded-2xl bg-white md:max-w-2xl")
+            div(class="md:flex justify-center")
+                div(class="p-8 w-full")
+                    h1.text-center.font-title.text-2xl= pagina
+                    form.space-y-5(
+                        method="POST"
+                        action=noticia ? `/admin/actualizar-noticia/${noticia.id}` : "/admin/registro-noticias"
+                        enctype="multipart/form-data"
+                        class="flex flex-col items-center"
+                    )
+                        div.w-full
+                            label.block.text-sm.uppercase.text-gray-500.mb-3.font-title(for="titulo") Título
+                            input#titulo.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                placeholder="Título de la noticia"
+                                type="text"
+                                name="titulo"
+                                value=noticia ? noticia.Titulo : ""
+                                required
+                            )
+                        div.w-full
+                            label.block.text-sm.uppercase.text-gray-500.mb-3.font-title(for="url") URL
+                            input#url.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                placeholder="URL de la noticia"
+                                type="text"
+                                name="url"
+                                value=noticia ? noticia.url : ""
+                                required
+                            )
+                        div.w-full
+                            label.block.text-sm.uppercase.text-gray-500.mb-3.font-title(for="img") Imagen
+                            input#img.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                type="file"
+                                name="img"
+                            )
+                            if noticia && noticia.img
+                                img.mt-4.w-32.h-32.object-cover(
+                                    src=noticia.img
+                                    alt="Imagen actual de la noticia"
+                                )
+                                p.text-sm.text-gray-500.mt-2 Imagen actual
+                        input(
+                            class="w-full bg-principal hover:bg-green-500 text-white font-title py-3 cursor-pointer rounded-2xl"
+                            type="submit"
+                            value=noticia ? "Actualizar Noticia" : "Crear Noticia"
+                        )

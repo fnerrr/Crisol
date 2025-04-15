@@ -1,0 +1,129 @@
+extends ../layout/administrador
+
+block contenido
+    div(class="flex justify-center items-center")
+        div(class="shadow-xl mx-auto overflow-hidden rounded-2xl bg-white w-full max-w-4xl")  
+            div(class="md:flex justify-center")
+                div(class="p-8 w-full")
+                    h1.text-center.font-title.text-2xl.mb-6= pagina
+                    
+                    // Mensajes de error/éxito
+                    if error
+                        div(class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert")
+                            strong(class="font-bold") Error:
+                            span(class="block sm:inline")= error
+                    if success
+                        div(class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert")
+                            strong(class="font-bold") Éxito:
+                            span(class="block sm:inline")= success
+                    
+                    form(
+                        method="POST"
+                        action=articulo ? `/admin/actualizar-articulo/${articulo.id}` : "/admin/registro-articulos"
+                        enctype="multipart/form-data"
+                    )
+                        // Sección del Autor en 2 columnas
+                        div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8")
+                            div
+                                h2.font-title.text-lg.text-gray-700.mb-4 Información del Autor
+                                
+                                div.mb-4
+                                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="nombreAutor") Nombre del Autor
+                                    input#nombreAutor.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                        placeholder="Nombre completo"
+                                        type="text"
+                                        name="nombreAutor"
+                                        value=articulo ? articulo.nombreAutor : ""
+                                        required
+                                    )
+                                
+                                div.mb-4
+                                    label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="ocupacionAutor") Ocupación
+                                    input#ocupacionAutor.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                        placeholder="Profesión/rol"
+                                        type="text"
+                                        name="ocupacionAutor"
+                                        value=articulo ? articulo.ocupacionAutor : ""
+                                        required
+                                    )
+                            
+                            div
+                                h2.font-title.text-lg.text-gray-700.mb-4 Foto del Autor
+                                div.flex.flex-col.h-full
+                                    div.mb-4
+                                        label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="imgAutor") Subir imagen
+                                        input#imgAutor.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                            type="file"
+                                            name="imgAutor"
+                                            required=!articulo
+                                        )
+                                        if articulo
+                                            p.text-xs.text-gray-500.mt-1 (Dejar en blanco para mantener la imagen actual)
+                                    
+                                    if articulo && articulo.imgAutor
+                                        div.mt-auto
+                                            img.w-40.h-40.object-cover.rounded-full.mx-auto(
+                                                src=articulo.imgAutor
+                                                alt="Foto actual del autor"
+                                            )
+                                            p.text-sm.text-gray-500.mt-2.text-center Foto actual
+
+                        // Sección del Artículo
+                        div(class="bg-gray-50 p-6 rounded-lg")
+                            h2.font-title.text-lg.text-gray-700.mb-4 Información del Artículo
+                            
+                            div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+                                div
+                                    div.mb-4
+                                        label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="titulo") Título
+                                        input#titulo.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                            placeholder="Título del artículo"
+                                            type="text"
+                                            name="titulo"
+                                            value=articulo ? articulo.titulo : ""
+                                            required
+                                        )
+                                    
+                                    div.mb-4
+                                        label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="categoria") Categoría
+                                        select#categoria.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                            name="categoria"
+                                            required
+                                        )
+                                            option(value="" disabled selected=!articulo) Seleccione categoría
+                                            each categoria in ['Visión estudiantil', 'Mundo y política', 'Educación', 'Ciencia', 'Poesía', 'Arte', 'Cultura', 'Deporte', 'Noticiero estudiantil', 'Desafíos mentales']
+                                                option(value=categoria selected=(articulo && articulo.categoria === categoria))= categoria
+                                
+                                div
+                                    div.mb-4
+                                        label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="img") Imagen del Artículo
+                                        input#img.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                            type="file"
+                                            name="img"
+                                            required=!articulo
+                                        )
+                                        if articulo
+                                            p.text-xs.text-gray-500.mt-1 (Dejar en blanco para mantener la imagen actual)
+                                        if articulo && articulo.img
+                                            img.mt-4.w-full.h-40.object-cover.rounded(
+                                                src=articulo.img
+                                                alt="Imagen actual del artículo"
+                                            )
+                                            p.text-sm.text-gray-500.mt-2.text-center Imagen actual
+                            
+                            div.mt-4
+                                label.block.text-sm.uppercase.text-gray-500.mb-2.font-title(for="contenido") Contenido
+                                textarea#contenido.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(
+                                    placeholder="Escribe aquí el contenido del artículo..."
+                                    name="contenido"
+                                    rows="8"
+                                    required
+                                )= articulo ? articulo.contenido : ""
+
+                        // Botón de submit
+                        div.mt-8
+                            input(
+                                class="w-full bg-principal hover:bg-green-600 text-white font-bold py-3 cursor-pointer rounded-2xl transition duration-200"
+                                type="submit"
+                                value=articulo ? "Actualizar Artículo" : "Publicar Artículo"
+                            )

@@ -1,0 +1,58 @@
+nav(
+    x-data="{ scrolled: false }"
+    class="sticky top-0 w-full z-40 transition-all duration-300 py-2 hidden md:block"
+    :class="scrolled ? 'bg-principal shadow-lg' : 'bg-orange-50/90 backdrop-blur-sm'"
+    @scroll.window="scrolled = (window.pageYOffset > 50)"
+)
+    .container.mx-auto.px-4
+        .relative.flex.items-center.justify-center
+            ul.flex.mx-auto.space-x-8
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/inicio"
+                    ) 
+                        span.relative Inicio
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/revistas"
+                    )
+                        span.relative Revistas
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/articulos"
+                    )
+                        span.relative Articulos
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/quienes-somos"
+                    )
+                        span.relative ¿Quienes somos?
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/noticias"
+                    )
+                        span.relative Noticias
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full"
+                        href="/contacto"
+                    )
+                        span.relative Contacto
+                li.group
+                    a(
+                        :class="scrolled ? 'text-white hover:text-indigo-200' : 'text-gray-700 hover:text-orange-600'"
+                        class="inline-block font-medium transition-colors duration-300 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 after:transition-all after:duration-300 group-hover:after:w-full py-1"
+                        href="/colabora"
+                    )
+                        span.relative Colabora

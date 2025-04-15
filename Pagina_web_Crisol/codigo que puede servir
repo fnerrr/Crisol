@@ -1,0 +1,73 @@
+const autenticarUsuario = async (req, res) => {
+    // Validaciones con express-validator
+    await check('username').notEmpty().withMessage('El usuario es obligatorio').run(req);
+
+    await check('password').notEmpty().withMessage('La contraseña es obligatoria').run(req);
+
+    let resultado = validationResult(req);
+
+    // Verificar si hay errores de validación
+    if (!resultado.isEmpty()) {
+        return res.render('auth/login', {
+            pagina: 'Iniciar Sesión',
+            // Convertir errores a un formato más simple si es necesario
+            errores: resultado.array(),
+            // Mantener los valores ingresados para mejor UX
+            datos: {
+                username: req.body.username
+            }
+        });
+    }
+
+    const { username, password } = req.body;
+
+    try {
+        // Busca al usuario en la base de datos
+        const usuario = await Usuario.findOne({ where: { username } });
+
+        // Si el usuario no existe
+        if (!usuario) {
+            return res.render('auth/login', {
+                pagina: 'Inicio de Sesión',
+                errores: [{ msg: 'Usuario o contraseña incorrectos' }], // Mensaje genérico por seguridad
+                datos: {
+                    username: req.body.username
+                }
+            });
+        }
+
+        // Comparación de contraseñas (deberías usar bcrypt en producción)
+        if (password !== usuario.password) {
+            return res.render('auth/login', {
+                pagina: 'Inicio de Sesión',
+                errores: [{ msg: 'Usuario o contraseña incorrectos' }], // Mismo mensaje por seguridad
+                datos: {
+                    username: req.body.username
+                }
+            });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign(
+            { id: usuario.id },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        // Configurar cookie
+        res.cookie('_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        });
+
+        // Redirigir al usuario
+        res.redirect('/admin/inicio');
+    } catch (error) {
+        console.error(error);
+        res.status(500).render('auth/login', {
+            pagina: 'Inicio de Sesión',
+            errores: [{ msg: 'Error en el servidor' }]
+        });
+    }
+};

@@ -1,0 +1,68 @@
+div
+    section(class="bg-orange-50")
+        nav(class="py-6 border-b border-gray-200 shadow-sm")
+            div(class="container mx-auto px-4")
+                div(class="relative flex items-center justify-between")
+                    ul(class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden md:flex space-x-8")
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200") Inicio
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/actualizar-icono" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Actualizar icono
+                                    li
+                                        a(href="/admin/actualizar-color" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Actualizar color
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200")| Slider
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/slider" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Actualizar slider
+
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200")| Articulos
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/agregar-articulo" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Agregar articulos
+                                    li
+                                        a(href="/admin/verarticulos" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Ver articulo
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200") Revistas
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/agregar-pdf" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Agregar revista
+                                    li
+                                        a(href="/admin/lista-revistas" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Editar Revistas
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200") Noticias
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/registro-noticias" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Agregar Noticia
+                                    li
+                                        a(href="/admin/vernoticias" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Ver Noticias
+                                    li
+                                        a(href="/admin/editar-noticias" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Editar Noticias
+                        li(class="group relative")
+                            div(class="inline-block")
+                                a(class="inline-block text-gray-700 hover:text-crisol font-semibold flex items-center cursor-pointer transition-colors duration-200") contacto
+                                    span(class="ml-2 transition-transform duration-200 group-hover:rotate-180") ▼
+                                ul(class="absolute bg-white shadow-md mt-2 py-2 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 left-0 top-full whitespace-nowrap")
+                                    li
+                                        a(href="/admin/contactos" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Contactos
+                                    li
+                                        a(href="/admin/colaboraciones" class="block px-6 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200") Colobaraciones
+                        li.ml-auto
+                            form(action="/admin/cerrar-sesion", method="POST", class="inline")
+                                input(type="hidden", name="_csrf", value=csrfToken)
+                                button(
+                                    type="submit", 
+                                    class="inline-block text-gray-700 hover:text-crisol font-semibold transition-colors duration-200 whitespace-nowrap"
+                                ) Cerrar Sesión

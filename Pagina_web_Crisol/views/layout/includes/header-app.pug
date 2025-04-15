@@ -1,0 +1,261 @@
+header(class="flex flex-col sm:flex-row shadow-xl justify-around items-center p-2 bg-principal text-white relative z-10")
+    //- Contenedor izquierdo (menú y logo)
+    div(class="flex items-center justify-start sm:justify-center space-x-4 sm:space-x-6 w-full sm:w-auto")
+        //- Menú de Navegación Móvil
+        div(x-data="{ mobileNavOpen: false }" class="flex items-center justify-start sm:hidden")
+            //- Botón de hamburguesa
+            button(
+                x-on:click="mobileNavOpen = !mobileNavOpen",
+                class="navbar-burger text-white hover:text-gray-200 relative z-50"
+            )
+                svg(width="32" height="32" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg")
+                    path(d="M5.19995 23.2H26.7999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="M5.19995 16H26.7999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round")
+                    path(d="M5.19995 8.79999H26.7999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round")
+
+            //- Menú desplegable con redes sociales
+            template(x-teleport="body")
+                div(
+                    x-show="mobileNavOpen",
+                    x-transition:enter="transition ease-out duration-300",
+                    x-transition:enter-start="opacity-0",
+                    x-transition:enter-end="opacity-100",
+                    x-transition:leave="transition ease-in duration-200",
+                    x-transition:leave-start="opacity-100",
+                    x-transition:leave-end="opacity-0",
+                    class="fixed inset-0 z-[9999]"
+                )
+                    div(
+                        x-on:click="mobileNavOpen = false",
+                        class="absolute inset-0 bg-black/50"
+                    )
+                    
+                    nav(
+                        class="absolute top-0 left-0 h-full w-4/5 max-w-sm bg-principal shadow-xl flex flex-col",
+                        x-show="mobileNavOpen",
+                        x-transition:enter="transition ease-out duration-300",
+                        x-transition:enter-start="-translate-x-full",
+                        x-transition:enter-end="translate-x-0",
+                        x-transition:leave="transition ease-in duration-200",
+                        x-transition:leave-start="translate-x-0",
+                        x-transition:leave-end="-translate-x-full"
+                    )
+                        div(class="flex items-center justify-between p-4 border-b border-white/10")
+                            h2(class="text-2xl text-textoPrimario font-bold") Menú
+                            button(
+                                x-on:click="mobileNavOpen = false",
+                                class="text-white hover:text-gray-200"
+                            )
+                                svg(width="32" height="32" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg")
+                                    path(d="M23.2 8.79999L8.80005 23.2M8.80005 8.79999L23.2 23.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round")
+
+                        //- Enlaces del menú
+                        ul(class="flex flex-col space-y-4 p-4 flex-grow")
+                            li
+                                a(
+                                    href="/inicio",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Inicio
+                            li
+                                a(
+                                    href="/revistas",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Revistas
+                            li
+                                a(
+                                    href="/articulos",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Articulos
+                            li
+                                a(
+                                    href="/quienes-somos",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) ¿Quienes somos?
+                            li
+                                a(
+                                    href="/noticias",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Noticias
+                            li
+                                a(
+                                    href="/contacto",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Contacto
+                            li
+                                a(
+                                    href="/colabora",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Colabora
+                            li
+                                a(
+                                    href="/auth/login",
+                                    class="inline-block py-2 px-4 text-white hover:bg-white/10 rounded-md font-medium"
+                                ) Iniciar Sesión
+
+                        //- Redes sociales en el menú móvil (con WhatsApp y X/Twitter)
+                        div(class="flex flex-col items-center p-6 border-t border-white/10")
+                            //- Texto "Síguenos" con flecha (versión móvil)
+                            div(class="flex items-center mb-4")
+                                span(class="text-white text-sm font-medium mr-2") Síguenos
+                                //- Flecha hacia abajo
+                                svg(xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                                    path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7")
+
+                            div(class="flex flex-wrap justify-center gap-4")
+                                //- Facebook
+                                a(
+                                    href="https://www.facebook.com/profile.php?id=100063605592429" 
+                                    class="transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+                                    aria-label="Facebook"
+                                    title="Facebook"
+                                )
+                                    div(class="flex items-center justify-center p-2 rounded-full bg-blue-600 hover:bg-blue-700 shadow-md")
+                                        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24")
+                                            path(d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z")
+                                
+                                //- Instagram
+                                a(
+                                    href="https://www.instagram.com/crisol.revista?igsh=MWFjYXZoamN4enl4ag%3D%3D" 
+                                    class="transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+                                    aria-label="Instagram"
+                                    title="Instagram"
+                                )
+                                    div(class="flex items-center justify-center p-2 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-yellow-400 hover:from-purple-600 hover:via-pink-600 hover:to-yellow-500 shadow-md")
+                                        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24")
+                                            path(d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z")
+                                
+                                //- TikTok
+                                a(
+                                    href="https://x.com/fnerrr_nacional?s=21" 
+                                    class="transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+                                    aria-label="TikTok"
+                                    title="TikTok"
+                                )
+                                    div(class="flex items-center justify-center p-2 rounded-full bg-black hover:bg-gray-800 shadow-md")
+                                        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24")
+                                            path(d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z")
+                                
+                                //- WhatsApp
+                                a(
+                                    href="https://whatsapp.com/channel/0029VaaHusj84OmCxhGAux1r" 
+                                    class="transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+                                    aria-label="WhatsApp"
+                                    title="WhatsApp"
+                                )
+                                    div(class="flex items-center justify-center p-2 rounded-full bg-green-500 hover:bg-green-600 shadow-md")
+                                        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24")
+                                            path(d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z")
+                                
+                                //- X (Twitter)
+                                a(
+                                    href="https://x.com/FNERRR_NACIONAL" 
+                                    class="transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+                                    aria-label="X (Twitter)"
+                                    title="X (Twitter)"
+                                )
+                                    div(class="flex items-center justify-center p-2 rounded-full bg-black hover:bg-gray-800 shadow-md")
+                                        svg(xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 24 24")
+                                            path(d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z")
+
+        //- Logo
+        a(href="/inicio")
+            img(
+                src="/img/crisol.jpg",
+                alt="Icono",
+                class="w-[180px] h-[75px] sm:w-[200px] sm:h-[85px] object-contain"
+            )
+
+    //- Título
+    div(class="flex justify-center mx-4 my-2 sm:my-0 w-full sm:w-auto")
+        h1(class="text-2xl sm:text-3xl font-title italic font-bold text-center") Saber, Educación y Política
+
+    //- Redes sociales en desktop (versión mejorada con WhatsApp y X/Twitter)
+    div(class="hidden sm:flex items-center justify-center space-x-2 px-4")
+        //- Texto "Síguenos" con flecha (versión desktop)
+        div(class="flex items-center mr-2")
+            span(class="text-white text-lg font-title font-bold italic mr-1") Síguenos
+            //- Flecha hacia la derecha
+            svg(xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3")
+
+        //- Facebook
+        a(
+            href="https://www.facebook.com/profile.php?id=100063605592429" 
+            class="social-icon transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+            aria-label="Facebook"
+            title="Facebook"
+        )
+            div(class="flex items-center justify-center p-2 rounded-full bg-blue-600 hover:bg-blue-700 shadow-md")
+                svg(xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24")
+                    path(d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z")
+
+        //- Instagram
+        a(
+            href="https://www.instagram.com/crisol.revista?igsh=MWFjYXZoamN4enl4ag%3D%3D" 
+            class="social-icon transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+            aria-label="Instagram"
+            title="Instagram"
+        )
+            div(class="flex items-center justify-center p-2 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-yellow-400 hover:from-purple-600 hover:via-pink-600 hover:to-yellow-500 shadow-md")
+                svg(xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24")
+                    path(d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z")
+
+        //- WhatsApp
+        a(
+            href="https://whatsapp.com/channel/0029VaaHusj84OmCxhGAux1r" 
+            class="social-icon transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+            aria-label="WhatsApp"
+            title="WhatsApp"
+        )
+            div(class="flex items-center justify-center p-2 rounded-full bg-green-500 hover:bg-green-600 shadow-md")
+                svg(xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24")
+                    path(d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z")
+
+        //- X (Twitter)
+        a(
+            href="https://x.com/FNERRR_NACIONAL" 
+            class="social-icon transition-transform duration-300 hover:-translate-y-1 hover:scale-110" 
+            aria-label="X (Twitter)"
+            title="X (Twitter)"
+        )
+            div(class="flex items-center justify-center p-2 rounded-full bg-black hover:bg-gray-800 shadow-md")
+                svg(xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24")
+                    path(d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z")
+
+style.
+    @keyframes jump {
+        0%, 100% {
+            transform: translateY(0) scale(1);
+        }
+        50% {
+            transform: translateY(-10px) scale(1.1);
+        }
+    }
+    .jumping {
+        animation: jump 0.5s ease;
+    }
+
+script.
+    document.addEventListener('DOMContentLoaded', function() {
+        const socialIcons = document.querySelectorAll('.social-icon');
+        
+        function triggerJump() {
+            // Selecciona un ícono aleatorio
+            const randomIndex = Math.floor(Math.random() * socialIcons.length);
+            const icon = socialIcons[randomIndex];
+            
+            // Añade la clase de animación
+            icon.classList.add('jumping');
+            
+            // Remueve la clase después de que termine la animación
+            setTimeout(() => {
+                icon.classList.remove('jumping');
+            }, 500);
+        }
+        
+        // Activa la animación cada 5 segundos
+        setInterval(triggerJump, 5000);
+        
+        // También activa una animación al cargar la página
+        setTimeout(triggerJump, 1000);
+    });

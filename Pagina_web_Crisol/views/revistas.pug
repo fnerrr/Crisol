@@ -1,0 +1,87 @@
+extends ./layout/inicio_html
+
+block contenido
+    div(class="w-full flex justify-center bg-stone-50 rounded-t-xl min-h-screen")
+        div(class="m-2 sm:m-6 max-w-lg sm:max-w-6xl w-full")
+            div(class="flex flex-col items-center mb-6 sm:mb-8")
+                div(class="flex items-center gap-3")
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-700" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                    </svg>
+                    h1(class="text-3xl sm:text-4xl font-bold text-center text-gray-800") Ediciones Crisol
+            
+            h2(class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 border-b pb-2") REVISTAS
+
+            if revistas && revistas.length > 0
+                div(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6")
+                    each revista in revistas
+                        div(class="bg-white rounded-xl shadow-md overflow-hidden border border-indigo-200 hover:shadow-lg transition duration-300 group relative h-full flex flex-col")
+                            div(class="relative overflow-hidden h-48")
+                                img(src=revista.imagen || "/img/default.jpg" alt=revista.titulo class="w-full h-full object-cover transition duration-500 group-hover:scale-105")
+                                div(class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4")
+                                    div(class="translate-y-4 group-hover:translate-y-0 transition duration-300")
+                                        h3(class="text-white font-bold text-base")= revista.titulo
+                                        p(class="text-gray-200 text-sm")= `Publicada ${formatDate(revista.createdAt)}`
+                            
+                            div(class="p-4 flex-grow flex flex-col")
+                                div(class="flex justify-between items-start mb-2")
+                                    div
+                                        h3(class="text-gray-900 font-bold text-base")= revista.titulo
+                                
+                                p(class="text-sm text-gray-600 mb-3 line-clamp-2 flex-grow")= revista.descripcion || "Descripción no disponible"
+                                
+                                div(class="flex justify-between border-t border-gray-100 pt-3 text-sm")
+                                    a(href=`/revista/${revista.id}` class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1")
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        | Vista previa
+                                    a(href=revista.url class="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1")
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                        | PDF (#{formatFileSize(revista.tamanio)})
+
+                //- Paginador minimalista
+                if pagination.totalPages > 1
+                    div(class="flex justify-center mt-8 mb-4")
+                        nav(class="flex items-center gap-2")
+                            if pagination.hasPreviousPage
+                                a(href=`?page=${pagination.currentPage - 1}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition") &larr; Anterior
+                            
+                            - let i = 1
+                            while i <= pagination.totalPages
+                                if i === pagination.currentPage
+                                    span(class="px-3 py-1 border border-indigo-500 bg-indigo-500 text-white rounded")= i
+                                else
+                                    a(href=`?page=${i}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition")= i
+                                - i++
+                            
+                            if pagination.hasNextPage
+                                a(href=`?page=${pagination.currentPage + 1}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition") Siguiente &rarr;
+
+
+
+
+
+
+
+
+
+
+
+//-                     div(class="flex justify-center mt-8 mb-4")
+//-                         nav(class="flex items-center gap-2")
+//-                             if hasPreviousPage
+//-                                 a(href=`?page=${currentPage - 1}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition") &larr; Anterior
+                            
+//-                             - let i = 1
+//-                             while i <= totalPages
+//-                                 if i === currentPage
+//-                                     span(class="px-3 py-1 border border-indigo-500 bg-indigo-500 text-white rounded")= i
+//-                                 else
+//-                                     a(href=`?page=${i}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition")= i
+//-                                 - i++
+                            
+//-                             if hasNextPage
+//-                                 a(href=`?page=${currentPage + 1}` class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 transition") Siguiente &rarr;
+//-             else
+//-                 p(class="text-center text-gray-500 py-8") No se encontraron revistas
+//- //- Paginador minimalista (versión corregida)
+//- if pagination.totalPages > 1

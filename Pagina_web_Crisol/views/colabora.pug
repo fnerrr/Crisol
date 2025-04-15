@@ -1,0 +1,156 @@
+extends ./layout/inicio_html
+
+block contenido
+    main(class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8")
+        div(class="max-w-4xl mx-auto")
+            div(class="bg-white shadow-xl rounded-2xl overflow-hidden")
+                //- Header del formulario
+                div(class="bg-principal px-6 py-4")
+                    h1(class="text-center text-white font-title text-2xl md:text-3xl font-bold") Colabora con La Crisol
+                    h2(class="text-center text-white font-title text-xl md:text-2xl mt-2") Envía tu idea para la próxima edición
+
+                div(class="p-6 md:p-8")
+                    //- Mensajes de feedback
+                    if errores && errores.length
+                        div(class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded")
+                            div(class="flex")
+                                div(class="flex-shrink-0")
+                                    svg(class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor")
+                                        path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd")
+                                div(class="ml-3")
+                                    h3(class="text-sm font-title font-medium text-red-800") Hubo #{errores.length} error(es) con tu envío
+                                    div(class="mt-2 text-sm text-red-700")
+                                        ul(class="list-disc pl-5 space-y-1")
+                                            each error in errores
+                                                li= error.msg
+
+                    if success
+                        div(class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded")
+                            div(class="flex")
+                                div(class="flex-shrink-0")
+                                    svg(class="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor")
+                                        path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+                                div(class="ml-3")
+                                    h3(class="text-sm font-title font-medium text-green-800") ¡Éxito!
+                                    div(class="mt-2 text-sm text-green-700")
+                                        p= success
+
+                    //- Introducción
+                    div(class="prose prose-sm max-w-none mb-8")
+                        p(class="font-title text-gray-700") La FNERRR te invita a participar en nuestra revista: envía tus fotografías, artículos o reportajes. Los mejores serán publicados en este órgano de difusión. ¡Tu voz merece ser escuchada!
+
+                    //- Formulario
+                    form(method="POST" action="/contacto/colabora" enctype="multipart/form-data" novalidate class="space-y-6")
+                        div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+                            //- Título
+                            div
+                                label(for="titulo" class="block text-sm font-title font-medium text-gray-700 mb-1") Título de idea o artículo
+                                input(
+                                    id="titulo"
+                                    name="titulo"
+                                    type="text"
+                                    placeholder="Ej: La educación en México"
+                                    value= datos ? datos.titulo : ''
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'titulo') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                                if errores && errores.some(e => e.param === 'titulo')
+                                    p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'titulo').msg
+
+                            //- Nombre
+                            div
+                                label(for="nombre" class="block text-sm font-title font-medium text-gray-700 mb-1") Nombre (Autor)
+                                input(
+                                    id="nombre"
+                                    name="nombre"
+                                    type="text"
+                                    placeholder="Tu nombre completo"
+                                    value= datos ? datos.nombre : ''
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'nombre') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                                if errores && errores.some(e => e.param === 'nombre')
+                                    p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'nombre').msg
+
+                            //- Email
+                            div
+                                label(for="email" class="block text-sm font-title font-medium text-gray-700 mb-1") Correo electrónico
+                                input(
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="tucorreo@ejemplo.com"
+                                    value= datos ? datos.email : ''
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'email') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                                if errores && errores.some(e => e.param === 'email')
+                                    p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'email').msg
+
+                            //- Confirmar Email
+                            div
+                                label(for="confirmar_email" class="block text-sm font-title font-medium text-gray-700 mb-1") Confirmar correo electrónico
+                                input(
+                                    id="confirmar_email"
+                                    name="confirmar_email"
+                                    type="email"
+                                    placeholder="Confirma tu correo"
+                                    value= datos ? datos.confirmar_email : ''
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'confirmar_email') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                                if errores && errores.some(e => e.param === 'confirmar_email')
+                                    p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'confirmar_email').msg
+
+                            //- Categoría
+                            div
+                                label(for="categoria" class="block text-sm font-title font-medium text-gray-700 mb-1") Categoría
+                                select(
+                                    id="categoria"
+                                    name="categoria"
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'categoria') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                                    option(value="" disabled selected) Selecciona una categoría
+                                    option(value="Visión estudiantil" selected= datos && datos.categoria === 'Visión estudiantil') Visión estudiantil
+                                    option(value="Mundo y política" selected= datos && datos.categoria === 'Mundo y política') Mundo y política
+                                    option(value="Educación" selected= datos && datos.categoria === 'Educación') Educación
+                                    option(value="Ciencia" selected= datos && datos.categoria === 'Ciencia') Ciencia
+                                    option(value="Poesía" selected= datos && datos.categoria === 'Poesía') Poesía
+                                    option(value="Arte" selected= datos && datos.categoria === 'Arte') Arte
+                                    option(value="Cultura" selected= datos && datos.categoria === 'Cultura') Cultura
+                                    option(value="Deporte" selected= datos && datos.categoria === 'Deporte') Deporte
+                                    option(value="Noticiero estudiantil" selected= datos && datos.categoria === 'Noticiero estudiantil') Noticiero estudiantil
+                                    option(value="Desafíos mentales" selected= datos && datos.categoria === 'Desafíos mentales') Desafíos mentales
+                                if errores && errores.some(e => e.param === 'categoria')
+                                    p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'categoria').msg
+
+                        //- Contenido
+                        div
+                            label(for="contenido" class="block text-sm font-title font-medium text-gray-700 mb-1") Contenido del artículo
+                            textarea(
+                                id="contenido"
+                                name="contenido"
+                                rows="12"
+                                placeholder="Escribe aquí el contenido de tu artículo..."
+                                class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'contenido') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                            )= datos ? datos.contenido : ''
+                            if errores && errores.some(e => e.param === 'contenido')
+                                p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'contenido').msg
+
+                        //- Imagen
+                        div
+                            label(for="imagen" class="block text-sm font-title font-medium text-gray-700 mb-1") Subir imagen (opcional)
+                            div(class="mt-1 flex items-center")
+                                input(
+                                    id="imagen"
+                                    name="imagen"
+                                    type="file"
+                                    accept="image/*"
+                                    class=`w-full px-4 py-2 border ${errores && errores.some(e => e.param === 'imagen') ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-principal focus:border-principal'} rounded-md shadow-sm font-title`
+                                )
+                            if errores && errores.some(e => e.param === 'imagen')
+                                p(class="mt-1 text-sm text-red-600")= errores.find(e => e.param === 'imagen').msg
+                            p(class="mt-1 text-xs text-gray-500") Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 5MB.
+
+                        //- Botón de envío
+                        div(class="pt-4")
+                            button(
+                                type="submit"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-2xl shadow-sm text-sm font-title font-medium text-white bg-principal hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-principal transition duration-150 ease-in-out"
+                            ) Enviar colaboración

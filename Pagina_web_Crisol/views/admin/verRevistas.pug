@@ -1,0 +1,120 @@
+extends ../layout/administrador
+
+block contenido 
+    div(class="w-full flex justify-center bg-stone-50 min-h-screen")
+        div(class="m-2 sm:m-6 max-w-7xl w-full px-4")
+            //- Encabezado con título y breadcrumb
+            div(class="mb-8")
+                div(class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6")
+                    div(class="flex items-center gap-3")
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-700" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                        </svg>
+                        h1(class="text-3xl sm:text-4xl font-bold text-gray-800") Ediciones Crisol
+                    
+                    //- //- Breadcrumb
+                    //- nav(class="text-sm text-gray-600")
+                    //-     ol(class="flex items-center space-x-2")
+                    //-         li
+                    //-             a(href="/" class="hover:text-indigo-600") Inicio
+                    //-         li
+                    //-             span &raquo;
+                    //-         li(class="text-indigo-700 font-medium") Revistas
+
+            //- //- Filtros y buscador (opcional)
+            //- div(class="bg-white p-4 rounded-lg shadow-sm mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4")
+            //-     h2(class="text-xl font-bold text-gray-800") Nuestras Revistas
+            //-     div(class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto")
+            //-         input(type="text" placeholder="Buscar revista..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition")
+            //-         select(class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition")
+            //-             option(value="") Todas las categorías
+            //-             option(value="1") Categoría 1
+            //-             option(value="2") Categoría 2
+
+            //- Listado de revistas
+            if revistas && revistas.length > 0
+                div(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6")
+                    each revista in revistas
+                        div(class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition duration-300 group relative h-full flex flex-col hover:border-indigo-300")
+                            //- Imagen con efecto hover
+                            div(class="relative overflow-hidden h-48")
+                                img(src=revista.imagen || "/img/default.jpg" alt=`Portada revista ${revista.titulo}` class="w-full h-full object-cover transition duration-500 group-hover:scale-105")
+                                div(class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex items-end p-4")
+                                    div(class="translate-y-4 group-hover:translate-y-0 transition duration-300")
+                                        h3(class="text-white font-bold text-lg")= revista.titulo
+                                        p(class="text-gray-200 text-sm")= `Publicada ${formatDate(revista.createdAt)}`
+                            
+                            //- Contenido de la tarjeta
+                            div(class="p-4 flex-grow flex flex-col")
+                                div(class="flex justify-between items-start mb-2")
+                                    div
+                                        h3(class="text-gray-900 font-bold text-lg mb-1")= revista.titulo
+                                        //- p(class="text-xs text-gray-500")= `ID: ${revista.id}`
+                                
+                                p(class="text-sm text-gray-600 mb-4 line-clamp-3 flex-grow")= revista.descripcion || "Descripción no disponible"
+                                
+                                //- Botones de acción
+                                div(class="flex justify-between items-center border-t border-gray-100 pt-3")
+                                    a(href=`/revista/${revista.id}` target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 text-sm")
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        | Ver
+                                    
+                                    div(class="flex items-center gap-2")
+                                        span(class="text-xs text-gray-500")= formatFileSize(revista.tamanio)
+                                        a(href=revista.url download class="text-gray-700 hover:text-gray-900 font-medium flex items-center gap-1 text-sm")
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            | PDF
+
+            else
+                div(class="bg-white rounded-xl shadow-sm p-8 text-center")
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    h3(class="text-xl font-medium text-gray-700 mb-2") No hay revistas disponibles
+                    //- p(class="text-gray-500 mb-4") Cuando se publiquen nuevas revistas aparecerán aquí
+                    //- a(href="/admin/agregar-revista" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition")
+                    //-     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    //-         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    //-     </svg>
+                    //-     | Agregar nueva revista
+
+            //- Paginación mejorada
+            if pagination && pagination.totalPages > 1
+                div(class="flex justify-center mt-10 mb-6")
+                    nav(class="flex items-center gap-1")
+                        //- Botón Anterior
+                        a(href=`?page=${pagination.currentPage - 1}` class=`px-3 py-1 border rounded-l-lg ${pagination.hasPreviousPage ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'border-gray-200 text-gray-400 cursor-not-allowed'} transition flex items-center gap-1`)
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            | Anterior
+                        
+                        //- Páginas numeradas
+                        - let i = Math.max(1, pagination.currentPage - 2)
+                        - const maxPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
+                        
+                        if i > 1
+                            a(href=`?page=1` class="px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-100 transition") 1
+                            if i > 2
+                                span(class="px-2 py-1 text-gray-500") ...
+                        
+                        while i <= maxPage
+                            a(href=`?page=${i}` class=`px-3 py-1 border ${i === pagination.currentPage ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-300 text-gray-700 hover:bg-gray-100'} transition`)= i
+                            - i++
+                        
+                        if maxPage < pagination.totalPages
+                            if maxPage < pagination.totalPages - 1
+                                span(class="px-2 py-1 text-gray-500") ...
+                            a(href=`?page=${pagination.totalPages}` class="px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-100 transition")= pagination.totalPages
+                        
+                        //- Botón Siguiente
+                        a(href=`?page=${pagination.currentPage + 1}` class=`px-3 py-1 border rounded-r-lg ${pagination.hasNextPage ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'border-gray-200 text-gray-400 cursor-not-allowed'} transition flex items-center gap-1`)
+                            | Siguiente
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>

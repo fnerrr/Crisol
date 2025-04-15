@@ -1,0 +1,59 @@
+extends ./layout/inicio_html
+
+block contenido
+    main(class="py-12 bg-gray-50")
+        div(class="container mx-auto px-4")
+            div(class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8")
+                h1(class="text-3xl font-bold text-gray-800 mb-4 md:mb-0")= pagina
+                div(class="flex space-x-2")
+                    select(id="filtro-categoria" class="bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500")
+                        option(value="") Todas las categorías
+                        each categoria in ['Visión estudiantil', 'Mundo y política', 'Educación', 'Ciencia', 'Poesía', 'Arte', 'Cultura', 'Deporte', 'Noticiero estudiantil', 'Desafíos mentales']
+                            option(value=categoria)= categoria
+
+            div(class="bg-white rounded-lg shadow overflow-hidden")
+                if articulos && articulos.length > 0
+                    ul(id="lista-articulos" class="divide-y divide-gray-200")
+                        each articulo in articulos
+                            li(class="articulo hover:bg-gray-50 transition duration-150" data-categoria=articulo.categoria)
+                                a(href=`/articulos/${articulo.id}` class="block p-6")
+                                    div(class="flex flex-col md:flex-row md:items-center")
+                                        div(class="md:w-1/4 mb-4 md:mb-0 md:pr-6")
+                                            img(src=articulo.img alt=articulo.titulo class="w-full h-40 object-cover rounded-lg")
+                                        
+                                        div(class="md:w-3/4")
+                                            div(class="flex items-center mb-2")
+                                                span(class="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 categoria")= articulo.categoria
+                                                span(class="text-sm text-gray-500")= new Date(articulo.createdAt).toLocaleDateString('es-MX')
+                                            
+                                            h3(class="text-xl font-bold mb-2 text-gray-800")= articulo.titulo
+                                            p(class="text-gray-600 mb-3")= articulo.contenido.substring(0, 150) + '...'
+                                            
+                                            div(class="flex items-center")
+                                                img(src=articulo.imgAutor alt=`Autor: ${articulo.nombreAutor}` class="w-8 h-8 rounded-full mr-2")
+                                                div
+                                                    p(class="text-sm font-medium text-gray-800")= articulo.nombreAutor
+                                                    p(class="text-xs text-gray-500")= articulo.ocupacionAutor
+                else
+                    div(class="text-center py-12")
+                        p(class="text-gray-500 text-lg") No hay artículos disponibles en este momento.
+
+    script.
+        document.addEventListener('DOMContentLoaded', function() {
+            const filtroCategoria = document.getElementById('filtro-categoria');
+            const articulos = document.querySelectorAll('.articulo');
+            
+            filtroCategoria.addEventListener('change', function() {
+                const categoriaSeleccionada = this.value.toLowerCase();
+                
+                articulos.forEach(articulo => {
+                    const categoriaArticulo = articulo.dataset.categoria.toLowerCase();
+                    
+                    if (categoriaSeleccionada === '' || categoriaArticulo.includes(categoriaSeleccionada)) {
+                        articulo.style.display = 'block';
+                    } else {
+                        articulo.style.display = 'none';
+                    }
+                });
+            });
+        });

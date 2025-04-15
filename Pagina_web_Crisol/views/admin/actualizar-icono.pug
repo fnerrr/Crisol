@@ -1,0 +1,26 @@
+extends ../layout/administrador
+
+block contenido
+    //- div(class="bg-white p-6 rounded-lg shadow")
+    //-     h2(class="text-2xl text-center font-bold mb-4") Bienvenido al Panel de Administración
+    div(class="flex justify-center items-center mt-10")
+        div(class="shadow-xl mx-auto max-w-md overflow-hidden rounded-2xl bg-white md:max-w-2xl")
+            div(class="md:flex justify-center")
+                div(class="p-8 w-full")
+                    h2.text-center.font-title.text-2xl Actualizar Ícono de la Aplicación
+                    form.space-y-5(method="POST" action="/admin/actualizar-icono" enctype="multipart/form-data" class="flex flex-col items-center")
+                        // Mostrar el ícono actual
+                        div.flex.justify-center.mb-6
+                            img.rounded-lg.w-24.h-24.object-cover(src="/img/crisol.jpg" alt="Ícono actual")
+
+                        // Campo para subir el nuevo ícono
+                        div.w-full
+                            label.block.text-sm.uppercase.text-gray-500.mb-3.font-title(for="iconUpload") Actualizar ícono:
+                            .relative
+                                input#iconUpload.w-full.px-3.py-2.border.border-gray-500.rounded-md.placeholder-gray-400.font-title(type="file" name="iconUpload" accept="image/*" required)
+                                // Ícono de información
+                                .absolute.right-2.top-2
+                                    i.fas.fa-info-circle.text-gray-400.cursor-pointer(data-tooltip="El ícono debe ser de 512x512 píxeles y en formato PNG.")
+
+                        // Botón para enviar el formulario
+                        input(class="w-full bg-principal hover:bg-green-600 text-white font-title py-3 cursor-pointer rounded-2xl" type="submit" value="Actualizar Ícono")

@@ -1,0 +1,93 @@
+extends ./layout/inicio_html
+
+block contenido
+  main(class="py-8 px-4 sm:px-6 lg:px-8 bg-gray-50 min-h-screen")
+    div(class="max-w-7xl mx-auto")
+      //- Encabezado de la sección
+      div(class="text-center mb-12")
+        h1(class="text-3xl md:text-4xl font-title font-bold text-gray-900 mb-3") Noticias de La Crisol
+        p(class="text-lg text-gray-600 max-w-3xl mx-auto") Las últimas actualizaciones y publicaciones de nuestra comunidad estudiantil
+
+      //- Contenido de noticias
+      if noticias.length === 0
+        //- Estado vacío
+        div(class="bg-white rounded-xl shadow-sm p-12 text-center")
+          div(class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4")
+            svg(class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+          h3(class="text-lg font-medium text-gray-900 mb-1") No hay noticias disponibles
+          p(class="text-gray-500") Pronto publicaremos nuevas actualizaciones. ¡Vuelve a visitarnos!
+      else
+        //- Grid de noticias
+        div(class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8")
+          each noticia in noticias
+            article(class="flex flex-col rounded-xl shadow-md overflow-hidden bg-white transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1")
+              //- Imagen de la noticia
+              a(href=noticia.url target="_blank" rel="noopener noreferrer" class="block relative")
+                img(
+                  src=noticia.img,
+                  alt=noticia.Titulo,
+                  class="w-full h-56 object-cover"
+                )
+                //- Badge de Facebook
+                span(class="absolute top-3 right-3 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center")
+                  svg(xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 24 24")
+                    path(d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z")
+                  span Facebook
+
+              //- Contenido de la noticia
+              div(class="flex-1 p-6 flex flex-col")
+                div(class="flex-1")
+                  h3(class="text-xl font-bold text-gray-900 mb-2 hover:text-principal transition-colors")
+                    a(href=noticia.url target="_blank" rel="noopener noreferrer")= noticia.Titulo
+                  p(class="mt-3 text-base text-gray-500 line-clamp-3")= noticia.Descripcion || 'Descripción no disponible'
+
+                //- Pie de la tarjeta
+
+              //- Botón de acción
+              div(class="px-6 pb-6")
+                a(
+                  href=noticia.url
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-principal hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-principal transition-colors"
+                )
+                  | Ver publicación
+                  svg(xmlns="http://www.w3.org/2000/svg" class="ml-2 -mr-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor")
+                    path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3")
+
+      //- Mensaje de redes sociales
+      div(class="mt-16 text-center")
+        p(class="text-gray-500 mb-4") ¡Síguenos para más actualizaciones!
+        div(class="flex justify-center space-x-4")
+          a(href="#" class="text-gray-400 hover:text-principal transition-colors")
+            span(class="sr-only") Facebook
+            svg(class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true")
+              path(fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd")
+
+
+
+//- block contenido
+//-     div(class="container mx-auto px-4")
+//-         h1(class="text-2xl font-bold my-4") Lista de Noticias
+
+//-         table(class="min-w-full bg-white border border-gray-300")
+//-             thead
+//-                 tr
+//-                     th(class="py-2 px-4 border-b") Título
+//-                     th(class="py-2 px-4 border-b") URL
+//-                     th(class="py-2 px-4 border-b") Imagen
+//-                     th(class="py-2 px-4 border-b") Acciones
+//-             tbody
+//-                 each noticia in noticias
+//-                     tr
+//-                         td(class="py-2 px-4 border-b")= noticia.Titulo
+//-                         td(class="py-2 px-4 border-b")= noticia.url
+//-                         td(class="py-2 px-4 border-b")
+//-                             img(src=noticia.img, alt=noticia.Titulo, class="w-16 h-16 object-cover")
+//-                         td(class="py-2 px-4 border-b")
+//-                             a(href=`/noticias/editar/${noticia.id}`, class="text-blue-500 hover:text-blue-700 mr-2") Editar
+//-                             form(action=`/noticias/eliminar/${noticia.id}`, method="POST", class="inline")
+//-                                 button(type="submit", class="text-red-500 hover:text-red-700") Eliminar
+
+//-         a(href="/registro-noticias", class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700") Crear Nueva Noticia
