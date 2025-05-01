@@ -172,7 +172,7 @@ const verArticulos = async (req, res) => {
             'Deporte', 'Noticiero estudiantil', 'Desafíos mentales'
         ];
 
-        res.render('admin/verArticulos', {
+        res.render('admin/verarticulos', {
             pagina: 'Gestión de Artículos',
             articulos,
             categorias: categorias.map(cat => ({ value: cat, label: cat })),
