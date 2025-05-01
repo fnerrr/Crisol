@@ -8,12 +8,13 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "server": "nodemon index.js",
-    "css": "postcss public/css/tailwind.css -o public/css/app.css --watch"
+    "dev": "nodemon index.js",
+    "build": "postcss public/css/tailwind.css -o public/css/app.css",
+    "build:watch": "postcss public/css/tailwind.css -o public/css/app.css --watch",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
-    "@tailwindcss/cli": "^4.0.0",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.5",
     "cookie-parser": "^1.4.7",
@@ -27,13 +28,17 @@
     "mysql2": "^3.12.0",
     "pug": "^3.0.3",
     "sequelize": "^6.37.5",
-    "swiper": "^11.2.2"
+    "swiper": "^11.2.2",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
     "autoprefixer": "^10.4.20",
     "nodemon": "^3.1.9",
     "postcss": "^8.5.1",
-    "postcss-cli": "^11.0.0",
-    "tailwindcss": "^3.4.17"
+    "postcss-cli": "^11.0.0"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
