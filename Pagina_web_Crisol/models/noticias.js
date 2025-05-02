@@ -15,6 +15,10 @@ const Noticias = db.define('noticias',{
         type: DataTypes.TEXT,
         allowNull: false 
     },
+    s3_key: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
 });
 
 export default Noticias

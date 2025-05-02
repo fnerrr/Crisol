@@ -543,27 +543,62 @@ const actualizarNoticia = async (req, res) => {
 
 const registrarNoticia = async (req, res) => {
     const { titulo, url } = req.body;
-    const img = req.file;
-
-    console.log('Datos recibidos:', { titulo, url, img }); // Depuración
-
-    if (!img) {
-        console.error('No se subió ninguna imagen.'); // Depuración
-        return res.status(400).send('No se subió ninguna imagen.');
+    
+    console.log('Archivo recibido:', req.file);
+    
+    if (req.fileValidationError) {
+        return res.status(400).render('admin/registrar-noticia', {
+            pagina: 'Registrar Noticia',
+            error: req.fileValidationError,
+        });
     }
 
+    if (!req.file) {
+        return res.status(400).render('admin/registrar-noticia', {
+            pagina: 'Registrar Noticia',
+            error: 'No se subió ninguna imagen'
+        });
+    }
+
+    // Generar un nombre único para la imagen
+    const nombreArchivo = `noticias/${Date.now()}-${req.file.originalname}`;
+    const imagenKey = nombreArchivo;
+
     try {
-        const noticias = await Noticias.create({
+        // Subir nueva imagen a S3
+        await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: imagenKey,
+            Body: fs.createReadStream(req.file.path),
+            ContentType: req.file.mimetype
+        }));
+
+        // Crear el registro en la base de datos
+        const noticiaData = {
             Titulo: titulo,
             url: url,
-            img: `/img/${img.filename}`,
-        });
+            img: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`,
+            s3_key: imagenKey,
+            tamanio: req.file.size // Opcional: guardar el tamaño del archivo
+        };
 
-        console.log('Noticia guardada en la base de datos:', noticias); // Depuración
+        const noticia = await Noticias.create(noticiaData);
+
+        // Limpiar archivo temporal
+        fs.unlinkSync(req.file.path);
+
         res.redirect('/admin/vernoticias');
-    } catch (error) {
-        console.error('Error al crear la noticia:', error); // Depuración
-        res.status(500).send('Error al crear la noticia');
+
+    } catch (err) {
+        console.error('Error en el controlador:', err);
+
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
+
+        res.status(500).render('admin/registrar-noticia', {
+            pagina: 'Registrar Noticia',
+            error: 'Error al procesar la solicitud: ' + err.message
+        });
     }
 };
 
