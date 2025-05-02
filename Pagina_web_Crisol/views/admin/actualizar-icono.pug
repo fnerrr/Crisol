@@ -1,8 +1,6 @@
 extends ../layout/administrador
 
 block contenido
-    //- div(class="bg-white p-6 rounded-lg shadow")
-    //-     h2(class="text-2xl text-center font-bold mb-4") Bienvenido al Panel de Administración
     div(class="flex justify-center items-center mt-10")
         div(class="shadow-xl mx-auto max-w-md overflow-hidden rounded-2xl bg-white md:max-w-2xl")
             div(class="md:flex justify-center")
@@ -11,7 +9,9 @@ block contenido
                     form.space-y-5(method="POST" action="/admin/actualizar-icono" enctype="multipart/form-data" class="flex flex-col items-center")
                         // Mostrar el ícono actual
                         div.flex.justify-center.mb-6
-                            img.rounded-lg.w-24.h-24.object-cover(src="/img/crisol.jpg" alt="Ícono actual")
+                            if logo && logo.img_url
+                                img.rounded-lg.w-24.h-24.object-cover(src=logo.img_url alt="Ícono actual")
+
 
                         // Campo para subir el nuevo ícono
                         div.w-full

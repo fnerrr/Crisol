@@ -610,55 +610,100 @@ const eliminarNoticia = async (req, res) => {
     }
 };
 
-const formularioIcono = (req, res) => {
-    res.render('admin/actualizar-icono', {
-        pagina: 'Actualizar icono'
-    });
+const formularioIcono = async (req, res) => {
+    try {
+        // Obtener el primer registro de la tabla de iconos
+        const logo = await Logo.findOne({
+            order: [['createdAt', 'DESC']] // Obtener el más reciente si hay múltiples
+        });
+        
+
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar icono',
+            logo: logo || null // Pasar null si no hay registros
+        });
+    } catch (error) {
+        console.error('Error al obtener el ícono:', error);
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar icono',
+            logo: null // Pasar null en caso de error
+        });
+    }
 };
 
 
 
 const actualizarIcono = async (req, res) => {
+    console.log('Archivo recibido:', req.file);
+    
+    if (req.fileValidationError) {
+        return res.status(400).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: req.fileValidationError,
+        });
+    }
+
     if (!req.file) {
-        return res.status(400).send('No se subió ninguna imagen.');
+        return res.status(400).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: 'No se subió ninguna imagen'
+        });
     }
 
     const nombreArchivo = 'crisol.jpg'; // Nombre fijo para el ícono
-    const newIconPath = path.join(__dirname, '../../Pagina_web_Crisol/public/img/', nombreArchivo);
+    const imagenKey = `iconos/${nombreArchivo}`; // Estructura: iconos/crisol.jpg
 
     try {
-        // Verificar si el archivo antiguo existe y eliminarlo
-        if (fs.existsSync(newIconPath)) {
-            fs.unlinkSync(newIconPath); // Eliminar el archivo antiguo
-            console.log('Imagen anterior eliminada:', newIconPath);
+        // Obtener el ícono actual para eliminarlo si existe
+        const iconoExistente = await Logo.findOne();
+        
+        // Eliminar imagen anterior si existe
+        if (iconoExistente?.s3_key) {
+            await s3Client.send(new DeleteObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: iconoExistente.s3_key
+            }));
         }
 
-        // Mover la nueva imagen a la ubicación deseada
-        fs.rename(req.file.path, newIconPath, async (err) => {
-            if (err) {
-                console.error('Error al mover el archivo:', err);
-                return res.status(500).send('Error al actualizar el ícono.');
-            }
+        // Subir nueva imagen a S3
+        await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: imagenKey,
+            Body: fs.createReadStream(req.file.path),
+            ContentType: req.file.mimetype
+        }));
 
-            // Si estás utilizando un modelo Logo para almacenar la ruta del ícono
-            try {
-                const logo = await Logo.findOne();
-                if (logo) {
-                    logo.ruta = `/img/${nombreArchivo}`;
-                    await logo.save();
-                } else {
-                    await Logo.create({ ruta: `/img/${nombreArchivo}` });
-                }
-                console.log('Ícono actualizado correctamente.');
-                res.redirect('/admin/actualizar-icono');
-            } catch (error) {
-                console.error('Error al actualizar el logo en la base de datos:', error);
-                res.status(500).send('Error al actualizar el ícono.');
-            }
+        // Crear o actualizar el registro en la base de datos
+        const iconoData = {
+            img_url: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`,
+            s3_key: imagenKey
+        };
+
+        if (iconoExistente) {
+            await Logo.update(iconoData, { where: { id: iconoExistente.id } });
+        } else {
+            await Logo.create(iconoData);
+        }
+
+        // Limpiar archivo temporal
+        fs.unlinkSync(req.file.path);
+
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            success: 'Ícono actualizado correctamente',
+            
         });
-    } catch (error) {
-        console.error('Error en el bloque try-catch principal:', error);
-        res.status(500).send('Error al actualizar el ícono.');
+
+    } catch (err) {
+        console.error('Error en el controlador:', err);
+
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
+
+        res.status(500).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: 'Error al procesar la solicitud: ' + err.message
+        });
     }
 };
 

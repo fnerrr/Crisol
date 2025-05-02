@@ -7,6 +7,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import db from './config/db.js';
 import { fileURLToPath } from 'url';
 import path from 'path'
+import obtenerLogo from './middleware/obtenerLogo.js';
 import Usuario from './models/Usuarios.js'; // Importar el modelo Usuario
 import Noticias from './models/noticias.js'
 import Slider_img from './models/slider.js'
@@ -44,6 +45,8 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
 // Middleware para obtener la configuración de colores
 app.use(configMiddleware);
+app.use(obtenerLogo);
+app.use(obtenerLogo)
 // Rutas
 app.use('/auth', usuarioRoutes);
 app.use('/', appRoutes);
