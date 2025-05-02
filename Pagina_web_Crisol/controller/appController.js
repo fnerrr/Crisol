@@ -1,4 +1,5 @@
-import { GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import fs from 'fs';
 import s3Client from '../config/s3Config.js';
 import { check, validationResult } from 'express-validator'
 import Noticias from '../models/noticias.js'
