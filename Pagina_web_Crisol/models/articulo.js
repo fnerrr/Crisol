@@ -29,6 +29,10 @@ const Articulo = db.define('articulos', {
         type: DataTypes.TEXT,
         allowNull: false 
     },
+    img_s3_key: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     nombreAutor: {
         type: DataTypes.STRING,
         allowNull: false
@@ -39,6 +43,10 @@ const Articulo = db.define('articulos', {
     },
     imgAutor: {
         type: DataTypes.TEXT,
+        allowNull: false
+    },
+    imgAutor_s3_key: {
+        type: DataTypes.STRING,
         allowNull: false
     }
 });

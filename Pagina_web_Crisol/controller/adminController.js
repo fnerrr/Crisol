@@ -32,6 +32,7 @@ const agregarArticulo = async (req, res) => {
         res.redirect('/admin/verarticulos?error=Error al cargar el formulario');
     }
 };
+
 const registrarArticulo = async (req, res) => {
     try {
         const { titulo, contenido, categoria, nombreAutor, ocupacionAutor } = req.body;
@@ -46,16 +47,41 @@ const registrarArticulo = async (req, res) => {
         if (!img || !imgAutor) {
             return res.redirect('/admin/agregar-articulo?error=Se requieren ambas imágenes');
         }
-        
+
+        // Subir imagen principal a S3
+        const imgKey = `articulos/${Date.now()}-${img.originalname}`;
+        await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: imgKey,
+            Body: fs.createReadStream(img.path),
+            ContentType: img.mimetype
+        }));
+
+        // Subir imagen del autor a S3
+        const imgAutorKey = `autores/${Date.now()}-${imgAutor.originalname}`;
+        await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: imgAutorKey,
+            Body: fs.createReadStream(imgAutor.path),
+            ContentType: imgAutor.mimetype
+        }));
+
+        // Crear el artículo en la base de datos
         const articulo = await Articulo.create({
             titulo,
             contenido,
             categoria,
             nombreAutor,
             ocupacionAutor,
-            img: `/img/${img.filename}`,
-            imgAutor: `/img/${imgAutor.filename}`
+            img: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imgKey}`,
+            img_s3_key: imgKey,
+            imgAutor: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imgAutorKey}`,
+            imgAutor_s3_key: imgAutorKey
         });
+
+        // Eliminar archivos temporales
+        fs.unlinkSync(img.path);
+        fs.unlinkSync(imgAutor.path);
         
         return res.redirect('/admin/verarticulos?success=Artículo creado correctamente');
     } catch (error) {
@@ -65,9 +91,8 @@ const registrarArticulo = async (req, res) => {
         if (req.files) {
             Object.values(req.files).forEach(fileArray => {
                 fileArray.forEach(file => {
-                    const filePath = path.join(process.cwd(), 'public', 'uploads', file.filename);
-                    if (fs.existsSync(filePath)) {
-                        fs.unlinkSync(filePath);
+                    if (fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path);
                     }
                 });
             });
