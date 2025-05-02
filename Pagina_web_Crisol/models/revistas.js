@@ -10,6 +10,10 @@ const Revistas = db.define('revistas', {
         type: DataTypes.TEXT,
         allowNull: true,
     },
+    imagen_s3_key:{
+        type: DataTypes.STRING(255),
+        allowNull: true,
+    },
     imagen: {
         type: DataTypes.STRING(255),
         allowNull: true,
