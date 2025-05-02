@@ -705,11 +705,11 @@ const uploadPdfController = async (req, res) => {
     const imagenFile = req.files['imagen']?.[0];
     const pdfFile = req.files['pdfFile']?.[0];
 
-    // Validación: En modo creación, ambos archivos son requeridos
-    if (!isEditMode && (!pdfFile || !imagenFile)) {
+    // En modo edición, el PDF no es requerido (puede mantener el anterior)
+    if (!isEditMode && !pdfFile) {
         return res.status(400).render('admin/agregarPDF', {
             pagina: 'Subir PDF',
-            error: 'Se requieren ambos archivos (PDF e imagen)',
+            error: 'No se subió ningún archivo PDF',
             revista: req.body
         });
     }
@@ -720,7 +720,7 @@ const uploadPdfController = async (req, res) => {
             descripcion: req.body.descripcion
         };
 
-        // En modo edición, obtener la revista actual para manejar archivos antiguos
+        // En modo edición, primero obtenemos la revista actual para manejar la eliminación del PDF anterior
         let revistaExistente = null;
         if (isEditMode) {
             revistaExistente = await Revistas.findByPk(id);
@@ -733,58 +733,66 @@ const uploadPdfController = async (req, res) => {
             }
         }
 
-        // --- Subir PDF a S3 ---
+        // Procesar PDF si se subió uno nuevo
         if (pdfFile) {
-            // Eliminar PDF anterior si existe
+            // 1. Si estamos editando y existe un PDF anterior, lo eliminamos de S3
             if (isEditMode && revistaExistente?.s3_key) {
-                await s3Client.send(new DeleteObjectCommand({
-                    Bucket: process.env.AWS_BUCKET_NAME,
-                    Key: revistaExistente.s3_key
-                }));
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: revistaExistente.s3_key
+                    }));
+                } catch (s3Error) {
+                    console.error('Error al eliminar el PDF anterior de S3:', s3Error);
+                    // No detenemos el proceso si falla la eliminación del archivo anterior
+                }
             }
 
-            // Subir nuevo PDF
-            const pdfKey = `pdfs/${pdfFile.filename}`; // Estructura: pdfs/nombre-archivo.pdf
-            await s3Client.send(new PutObjectCommand({
+            // 2. Subir el nuevo PDF a S3
+            const fileStream = fs.createReadStream(pdfFile.path);
+            const uploadParams = {
                 Bucket: process.env.AWS_BUCKET_NAME,
-                Key: pdfKey,
-                Body: fs.createReadStream(pdfFile.path),
-                ContentType: pdfFile.mimetype
-            }));
+                Key: pdfFile.filename,
+                Body: fileStream,
+                ContentType: pdfFile.mimetype,
+                
+            };
 
-            revistaData.s3_key = pdfKey;
-            revistaData.url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${pdfKey}`;
+            await s3Client.send(new PutObjectCommand(uploadParams));
+            
+            // 3. Generar la URL del archivo
+            revistaData.s3_key = uploadParams.Key;
+            revistaData.url = `https://${uploadParams.Bucket}.s3.amazonaws.com/${uploadParams.Key}`;
             revistaData.tamanio = pdfFile.size;
 
-            fs.unlinkSync(pdfFile.path); // Limpiar archivo temporal
+            // Limpiar archivo PDF temporal
+            fs.unlinkSync(pdfFile.path);
         }
 
-        // --- Subir Imagen a S3 ---
+        // Procesar imagen si se subió una nueva
         if (imagenFile) {
-            // Eliminar imagen anterior si existe
-            if (isEditMode && revistaExistente?.imagen_s3_key) {
-                await s3Client.send(new DeleteObjectCommand({
-                    Bucket: process.env.AWS_BUCKET_NAME,
-                    Key: revistaExistente.imagen_s3_key
-                }));
+            // Si estamos editando y existe una imagen anterior, la eliminamos del sistema de archivos
+            if (isEditMode && revistaExistente?.imagen) {
+                try {
+                    const oldImagePath = path.join(__dirname, '../public', revistaExistente.imagen);
+                    if (fs.existsSync(oldImagePath)) {
+                        fs.unlinkSync(oldImagePath);
+                    }
+                } catch (fsError) {
+                    console.error('Error al eliminar la imagen anterior:', fsError);
+                    // No detenemos el proceso si falla la eliminación de la imagen anterior
+                }
             }
 
-            // Subir nueva imagen
-            const imagenKey = `imagenes/${imagenFile.filename}${path.extname(imagenFile.originalname)}`; // Estructura: imagenes/nombre-archivo.jpg
-            await s3Client.send(new PutObjectCommand({
-                Bucket: process.env.AWS_BUCKET_NAME,
-                Key: imagenKey,
-                Body: fs.createReadStream(imagenFile.path),
-                ContentType: imagenFile.mimetype
-            }));
-
-            revistaData.imagen = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`;
-            revistaData.imagen_s3_key = imagenKey;
-
-            fs.unlinkSync(imagenFile.path); // Limpiar archivo temporal
+            const imageExtension = path.extname(imagenFile.originalname);
+            const imageName = `${imagenFile.filename}${imageExtension}`;
+            const imagePath = path.join(__dirname, '../public/img', imageName);
+            
+            fs.renameSync(imagenFile.path, imagePath);
+            revistaData.imagen = `/img/${imageName}`;
         }
 
-        // Guardar/Actualizar en la base de datos
+        // Guardar o actualizar en la base de datos
         if (isEditMode) {
             await Revistas.update(revistaData, { where: { id } });
         } else {
@@ -800,7 +808,7 @@ const uploadPdfController = async (req, res) => {
     } catch (err) {
         console.error('Error en el controlador:', err);
 
-        // Limpieza de archivos temporales en caso de error
+        // Limpieza en caso de error
         if (pdfFile?.path) fs.unlinkSync(pdfFile.path);
         if (imagenFile?.path) fs.unlinkSync(imagenFile.path);
 
