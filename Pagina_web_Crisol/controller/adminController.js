@@ -172,7 +172,7 @@ const verArticulos = async (req, res) => {
             'Deporte', 'Noticiero estudiantil', 'Desafíos mentales'
         ];
 
-        res.render('admin/verArticulos', {
+        res.render('admin/verarticulos', {
             pagina: 'Gestión de Artículos',
             articulos,
             categorias: categorias.map(cat => ({ value: cat, label: cat })),
@@ -610,55 +610,100 @@ const eliminarNoticia = async (req, res) => {
     }
 };
 
-const formularioIcono = (req, res) => {
-    res.render('admin/actualizar-icono', {
-        pagina: 'Actualizar icono'
-    });
+const formularioIcono = async (req, res) => {
+    try {
+        // Obtener el primer registro de la tabla de iconos
+        const logo = await Logo.findOne({
+            order: [['createdAt', 'DESC']] // Obtener el más reciente si hay múltiples
+        });
+        
+
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar icono',
+            logo: logo || null // Pasar null si no hay registros
+        });
+    } catch (error) {
+        console.error('Error al obtener el ícono:', error);
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar icono',
+            logo: null // Pasar null en caso de error
+        });
+    }
 };
 
 
 
 const actualizarIcono = async (req, res) => {
+    console.log('Archivo recibido:', req.file);
+    
+    if (req.fileValidationError) {
+        return res.status(400).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: req.fileValidationError,
+        });
+    }
+
     if (!req.file) {
-        return res.status(400).send('No se subió ninguna imagen.');
+        return res.status(400).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: 'No se subió ninguna imagen'
+        });
     }
 
     const nombreArchivo = 'crisol.jpg'; // Nombre fijo para el ícono
-    const newIconPath = path.join(__dirname, '../../Pagina_web_Crisol/public/img/', nombreArchivo);
+    const imagenKey = `iconos/${nombreArchivo}`; // Estructura: iconos/crisol.jpg
 
     try {
-        // Verificar si el archivo antiguo existe y eliminarlo
-        if (fs.existsSync(newIconPath)) {
-            fs.unlinkSync(newIconPath); // Eliminar el archivo antiguo
-            console.log('Imagen anterior eliminada:', newIconPath);
+        // Obtener el ícono actual para eliminarlo si existe
+        const iconoExistente = await Logo.findOne();
+        
+        // Eliminar imagen anterior si existe
+        if (iconoExistente?.s3_key) {
+            await s3Client.send(new DeleteObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: iconoExistente.s3_key
+            }));
         }
 
-        // Mover la nueva imagen a la ubicación deseada
-        fs.rename(req.file.path, newIconPath, async (err) => {
-            if (err) {
-                console.error('Error al mover el archivo:', err);
-                return res.status(500).send('Error al actualizar el ícono.');
-            }
+        // Subir nueva imagen a S3
+        await s3Client.send(new PutObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: imagenKey,
+            Body: fs.createReadStream(req.file.path),
+            ContentType: req.file.mimetype
+        }));
 
-            // Si estás utilizando un modelo Logo para almacenar la ruta del ícono
-            try {
-                const logo = await Logo.findOne();
-                if (logo) {
-                    logo.ruta = `/img/${nombreArchivo}`;
-                    await logo.save();
-                } else {
-                    await Logo.create({ ruta: `/img/${nombreArchivo}` });
-                }
-                console.log('Ícono actualizado correctamente.');
-                res.redirect('/admin/actualizar-icono');
-            } catch (error) {
-                console.error('Error al actualizar el logo en la base de datos:', error);
-                res.status(500).send('Error al actualizar el ícono.');
-            }
+        // Crear o actualizar el registro en la base de datos
+        const iconoData = {
+            img_url: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`,
+            s3_key: imagenKey
+        };
+
+        if (iconoExistente) {
+            await Logo.update(iconoData, { where: { id: iconoExistente.id } });
+        } else {
+            await Logo.create(iconoData);
+        }
+
+        // Limpiar archivo temporal
+        fs.unlinkSync(req.file.path);
+
+        res.render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            success: 'Ícono actualizado correctamente',
+            
         });
-    } catch (error) {
-        console.error('Error en el bloque try-catch principal:', error);
-        res.status(500).send('Error al actualizar el ícono.');
+
+    } catch (err) {
+        console.error('Error en el controlador:', err);
+
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
+
+        res.status(500).render('admin/actualizar-icono', {
+            pagina: 'Actualizar Ícono',
+            error: 'Error al procesar la solicitud: ' + err.message
+        });
     }
 };
 
@@ -705,11 +750,11 @@ const uploadPdfController = async (req, res) => {
     const imagenFile = req.files['imagen']?.[0];
     const pdfFile = req.files['pdfFile']?.[0];
 
-    // En modo edición, el PDF no es requerido (puede mantener el anterior)
-    if (!isEditMode && !pdfFile) {
+    // Validación: En modo creación, ambos archivos son requeridos
+    if (!isEditMode && (!pdfFile || !imagenFile)) {
         return res.status(400).render('admin/agregarPDF', {
             pagina: 'Subir PDF',
-            error: 'No se subió ningún archivo PDF',
+            error: 'Se requieren ambos archivos (PDF e imagen)',
             revista: req.body
         });
     }
@@ -720,7 +765,7 @@ const uploadPdfController = async (req, res) => {
             descripcion: req.body.descripcion
         };
 
-        // En modo edición, primero obtenemos la revista actual para manejar la eliminación del PDF anterior
+        // En modo edición, obtener la revista actual para manejar archivos antiguos
         let revistaExistente = null;
         if (isEditMode) {
             revistaExistente = await Revistas.findByPk(id);
@@ -733,66 +778,58 @@ const uploadPdfController = async (req, res) => {
             }
         }
 
-        // Procesar PDF si se subió uno nuevo
+        // --- Subir PDF a S3 ---
         if (pdfFile) {
-            // 1. Si estamos editando y existe un PDF anterior, lo eliminamos de S3
+            // Eliminar PDF anterior si existe
             if (isEditMode && revistaExistente?.s3_key) {
-                try {
-                    await s3Client.send(new DeleteObjectCommand({
-                        Bucket: process.env.AWS_BUCKET_NAME,
-                        Key: revistaExistente.s3_key
-                    }));
-                } catch (s3Error) {
-                    console.error('Error al eliminar el PDF anterior de S3:', s3Error);
-                    // No detenemos el proceso si falla la eliminación del archivo anterior
-                }
+                await s3Client.send(new DeleteObjectCommand({
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: revistaExistente.s3_key
+                }));
             }
 
-            // 2. Subir el nuevo PDF a S3
-            const fileStream = fs.createReadStream(pdfFile.path);
-            const uploadParams = {
+            // Subir nuevo PDF
+            const pdfKey = `pdfs/${pdfFile.filename}`; // Estructura: pdfs/nombre-archivo.pdf
+            await s3Client.send(new PutObjectCommand({
                 Bucket: process.env.AWS_BUCKET_NAME,
-                Key: pdfFile.filename,
-                Body: fileStream,
-                ContentType: pdfFile.mimetype,
-                
-            };
+                Key: pdfKey,
+                Body: fs.createReadStream(pdfFile.path),
+                ContentType: pdfFile.mimetype
+            }));
 
-            await s3Client.send(new PutObjectCommand(uploadParams));
-            
-            // 3. Generar la URL del archivo
-            revistaData.s3_key = uploadParams.Key;
-            revistaData.url = `https://${uploadParams.Bucket}.s3.amazonaws.com/${uploadParams.Key}`;
+            revistaData.s3_key = pdfKey;
+            revistaData.url = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${pdfKey}`;
             revistaData.tamanio = pdfFile.size;
 
-            // Limpiar archivo PDF temporal
-            fs.unlinkSync(pdfFile.path);
+            fs.unlinkSync(pdfFile.path); // Limpiar archivo temporal
         }
 
-        // Procesar imagen si se subió una nueva
+        // --- Subir Imagen a S3 ---
         if (imagenFile) {
-            // Si estamos editando y existe una imagen anterior, la eliminamos del sistema de archivos
-            if (isEditMode && revistaExistente?.imagen) {
-                try {
-                    const oldImagePath = path.join(__dirname, '../public', revistaExistente.imagen);
-                    if (fs.existsSync(oldImagePath)) {
-                        fs.unlinkSync(oldImagePath);
-                    }
-                } catch (fsError) {
-                    console.error('Error al eliminar la imagen anterior:', fsError);
-                    // No detenemos el proceso si falla la eliminación de la imagen anterior
-                }
+            // Eliminar imagen anterior si existe
+            if (isEditMode && revistaExistente?.imagen_s3_key) {
+                await s3Client.send(new DeleteObjectCommand({
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Key: revistaExistente.imagen_s3_key
+                }));
             }
 
-            const imageExtension = path.extname(imagenFile.originalname);
-            const imageName = `${imagenFile.filename}${imageExtension}`;
-            const imagePath = path.join(__dirname, '../public/img', imageName);
-            
-            fs.renameSync(imagenFile.path, imagePath);
-            revistaData.imagen = `/img/${imageName}`;
+            // Subir nueva imagen
+            const imagenKey = `imagenes/${imagenFile.filename}${path.extname(imagenFile.originalname)}`; // Estructura: imagenes/nombre-archivo.jpg
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: imagenKey,
+                Body: fs.createReadStream(imagenFile.path),
+                ContentType: imagenFile.mimetype
+            }));
+
+            revistaData.imagen = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`;
+            revistaData.imagen_s3_key = imagenKey;
+
+            fs.unlinkSync(imagenFile.path); // Limpiar archivo temporal
         }
 
-        // Guardar o actualizar en la base de datos
+        // Guardar/Actualizar en la base de datos
         if (isEditMode) {
             await Revistas.update(revistaData, { where: { id } });
         } else {
@@ -808,7 +845,7 @@ const uploadPdfController = async (req, res) => {
     } catch (err) {
         console.error('Error en el controlador:', err);
 
-        // Limpieza en caso de error
+        // Limpieza de archivos temporales en caso de error
         if (pdfFile?.path) fs.unlinkSync(pdfFile.path);
         if (imagenFile?.path) fs.unlinkSync(imagenFile.path);
 

@@ -159,8 +159,9 @@ header(class="flex flex-col sm:flex-row shadow-xl justify-around items-center p-
 
         //- Logo
         a(href="/inicio")
-            img(
-                src="/img/crisol.jpg",
+            if logo && logo.img_url
+                img(
+                src=logo.img_url,
                 alt="Icono",
                 class="w-[180px] h-[75px] sm:w-[200px] sm:h-[85px] object-contain"
             )

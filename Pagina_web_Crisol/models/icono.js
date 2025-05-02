@@ -7,6 +7,11 @@ const Logo = db.define('iconos',{
         type: DataTypes.TEXT,
         allowNull: false 
     },
+    s3_key: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        unique: true,
+    },
 });
 
 export default Logo
