@@ -442,10 +442,39 @@ const colaboraRegistro = async (req, res) => {
     }
 
     const { titulo, nombre, email, categoria, contenido } = req.body;
-    const img = req.file;
+    
+    // Validación del archivo (similar al código de referencia)
+    if (req.fileValidationError) {
+        return res.render('colabora', {
+            pagina: 'Colabora con La Crisol',
+            errores: [{ msg: req.fileValidationError }],
+            datos: req.body
+        });
+    }
 
     try {
-        const imagenPath = img ? `/img/${img.filename}` : null;
+        let imagenUrl = null;
+        let s3Key = null;
+
+        if (req.file) {
+            // Generar un nombre único para la imagen
+            const nombreArchivo = `colaboraciones/${Date.now()}-${req.file.originalname}`;
+            s3Key = nombreArchivo;
+
+            // Subir imagen a S3
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: s3Key,
+                Body: fs.createReadStream(req.file.path),
+                ContentType: req.file.mimetype
+            }));
+
+            // Construir la URL pública de la imagen
+            imagenUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${s3Key}`;
+
+            // Eliminar archivo temporal
+            fs.unlinkSync(req.file.path);
+        }
 
         const nuevaColaboracion = await Colaboracion.create({
             titulo,
@@ -453,7 +482,8 @@ const colaboraRegistro = async (req, res) => {
             email,
             categoria,
             contenido,
-            imagen: imagenPath
+            imagen: imagenUrl,
+            s3_key: s3Key || '' // Asegurarse de que s3_key no sea null si es requerido
         });
 
         console.log('Colaboración registrada:', nuevaColaboracion);
@@ -466,6 +496,9 @@ const colaboraRegistro = async (req, res) => {
 
     } catch (error) {
         console.error('Error al registrar la colaboración:', error);
+        
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
         
         let mensajeError = 'Ocurrió un error al procesar tu solicitud';
         

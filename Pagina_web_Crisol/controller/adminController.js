@@ -250,52 +250,76 @@ const eliminarArticulo = async (req, res) => {
 const mostrarSlides = async (req, res) => {
     try {
         // Verificar si existe al menos una revista
-        const revistaDefault = await Revistas.findByPk(1);
+        let revistaDefault = await Revistas.findByPk(1);
         
         // Si no existe revista con ID 1, crea una por defecto
         if (!revistaDefault) {
-            await Revistas.create({
+            revistaDefault = await Revistas.create({
                 id: 1,
                 titulo: 'Revista por defecto',
-                // ...otros campos necesarios con valores por defecto
+                portada: '/img/revista-default.jpg',
+                descripcion: 'Revista por defecto para slides iniciales'
+                // Eliminamos el campo estado que no existe
             });
         }
 
         // Obtener o crear los 4 slides si no existen
         const slidesCount = await Slider.count();
-        if (slidesCount < 4) {
-            for (let i = 1; i <= 4; i++) {
-                await Slider.findOrCreate({
+        const slidesToCreate = [];
+        
+        for (let i = 1; i <= 4; i++) {
+            slidesToCreate.push(
+                Slider.findOrCreate({
                     where: { posicion: i },
                     defaults: {
                         imagen: `/img/slider${i}.jpg`,
-                        revista_id: 1, // ID de revista por defecto
+                        s3_key: 'default/slider-default.jpg',
+                        revista_id: revistaDefault.id,
                         posicion: i
+                        // Eliminamos el campo estado si no existe en la tabla
                     }
-                });
-            }
+                })
+            );
         }
 
+        await Promise.all(slidesToCreate);
+
+        // Obtener los slides con sus revistas asociadas
         const slides = await Slider.findAll({
             where: { posicion: [1, 2, 3, 4] },
             include: [{
                 model: Revistas,
-                as: 'revista'
+                as: 'revista',
+                attributes: ['id', 'titulo']
             }],
             order: [['posicion', 'ASC']]
         });
 
-        const revistas = await Revistas.findAll();
+        // Obtener todas las revistas (eliminamos el filtro por estado)
+        const revistas = await Revistas.findAll({
+            attributes: ['id', 'titulo'],
+            order: [['titulo', 'ASC']]
+        });
 
         res.render('admin/sliders', {
+            pagina: 'Administrar Slides',
             slides,
             revistas,
+
         });
 
     } catch (error) {
-        console.error(error);
-        req.flash('error', 'Error al cargar los slides');
-        res.redirect('/admin/inicio');
+        console.error('Error en mostrarSlides:', error);
+        
+        // Manejo de errores mejorado
+        if (req.accepts('html')) {
+            res.status(500).redirect('/admin/inicio?error=slides_error');
+        } else {
+            res.status(500).json({
+                error: 'Error al cargar los slides',
+                detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
     }
 };
 
@@ -318,38 +342,67 @@ const actualizarSlide = async (req, res) => {
         // Actualizar revista
         slide.revista_id = revista_id;
 
+        // Validación de archivo si se subió uno nuevo
+        if (req.fileValidationError) {
+            return res.status(400).render('admin/editar-slide', {
+                pagina: 'Editar Slide',
+                error: req.fileValidationError,
+                slide
+            });
+        }
+
         // Actualizar imagen si se subió una nueva
         if (req.file) {
-            // Verificar si es una imagen predefinida
-            if (slide.imagen.startsWith('/img/slider')) {
-                // Obtener la ruta completa del archivo existente
-                const oldImagePath = path.join(__dirname, '..', 'public', slide.imagen);
-                
-                // Eliminar la imagen anterior si existe
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
+            // Verificar si la imagen actual está en S3
+            if (slide.s3_key) {
+                // Eliminar la imagen anterior de S3
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: slide.s3_key
+                    }));
+                } catch (s3Error) {
+                    console.error('Error al eliminar imagen anterior de S3:', s3Error);
+                    // No detenemos el proceso si falla la eliminación
                 }
-                
-                // Mover la nueva imagen al mismo nombre/ruta
-                const newImagePath = path.join(__dirname, '..', 'public', slide.imagen);
-                fs.renameSync(req.file.path, newImagePath);
-                
-                // No actualizamos slide.imagen porque mantiene el mismo valor
-            } else {
-                // Si no es imagen predefinida, usar el nombre original del archivo subido
-                slide.imagen = '/uploads/sliders/' + req.file.filename;
             }
+
+            // Generar un nombre único para la nueva imagen
+            const nombreArchivo = `sliders/${Date.now()}-${req.file.originalname}`;
+            const imagenKey = nombreArchivo;
+
+            // Subir nueva imagen a S3
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: imagenKey,
+                Body: fs.createReadStream(req.file.path),
+                ContentType: req.file.mimetype
+            }));
+
+            // Actualizar los datos del slide
+            slide.imagen = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`;
+            slide.s3_key = imagenKey;
+            slide.tamanio = req.file.size; // Opcional: guardar el tamaño del archivo
+
+            // Limpiar archivo temporal
+            fs.unlinkSync(req.file.path);
         }
 
         await slide.save();
 
-        // req.flash('success', 'Slide actualizado correctamente');
         res.redirect('/admin/slider');
 
     } catch (error) {
-        console.error(error);
-        // req.flash('error', error.message);
-        res.redirect('/admin/slider');
+        console.error('Error en el controlador:', error);
+
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
+
+        res.status(500).render('admin/editar-slide', {
+            pagina: 'Editar Slide',
+            error: 'Error al procesar la solicitud: ' + error.message,
+            slide
+        });
     }
 };
 
