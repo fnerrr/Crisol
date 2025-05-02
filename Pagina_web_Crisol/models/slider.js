@@ -9,6 +9,10 @@ const Slider = db.define('sliders', {
         defaultValue: '/images/slide-default.jpg', // Imagen por defecto
         comment: 'Ruta relativa de la imagen del slide'
     },
+    s3_key: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+    },
     revista_id: {
         type: DataTypes.INTEGER,
         allowNull: false,

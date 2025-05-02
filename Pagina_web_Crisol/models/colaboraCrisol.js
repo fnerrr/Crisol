@@ -30,6 +30,13 @@ const Colaboracion = db.define('colaboraciones', {
         type: DataTypes.STRING, // Guardar la ruta de la imagen
         allowNull: true
     },
+    s3_key: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+        validate: {
+            notEmpty: true
+        }
+    },
     favorito: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
