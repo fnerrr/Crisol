@@ -590,30 +590,81 @@ const obtenerNoticia = async (req, res) => {
 
 const actualizarNoticia = async (req, res) => {
     const { id } = req.params;
-    const { titulo, url } = req.body; // Asegúrate de que el nombre coincida con el formulario
-    const img = req.file;
+    const { titulo, url } = req.body;
+    
+    console.log('Archivo recibido:', req.file);
+    
+    if (req.fileValidationError) {
+        return res.status(400).render('admin/editar-noticia', {
+            pagina: 'Editar Noticia',
+            error: req.fileValidationError,
+        });
+    }
 
     try {
         const noticia = await Noticias.findByPk(id);
 
         if (!noticia) {
-            return res.status(404).json({ error: 'Noticia no encontrada' });
+            return res.status(404).render('admin/editar-noticia', {
+                pagina: 'Editar Noticia',
+                error: 'Noticia no encontrada'
+            });
         }
 
-        // Actualizar los campos
-        noticia.Titulo = titulo; // Asegúrate de que el nombre coincida con el modelo
+        // Actualizar campos básicos
+        noticia.Titulo = titulo;
         noticia.url = url;
 
-        if (img) {
-            noticia.img = `/img/${img.filename}`; // Actualizar la imagen si se subió una nueva
+        // Si hay una nueva imagen
+        if (req.file) {
+            // Generar un nombre único para la nueva imagen
+            const nombreArchivo = `noticias/${Date.now()}-${req.file.originalname}`;
+            const imagenKey = nombreArchivo;
+
+            // Subir nueva imagen a S3
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: imagenKey,
+                Body: fs.createReadStream(req.file.path),
+                ContentType: req.file.mimetype
+            }));
+
+            // Eliminar la imagen anterior de S3 si existe
+            if (noticia.s3_key) {
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: noticia.s3_key
+                    }));
+                } catch (s3Error) {
+                    console.error('Error al eliminar imagen anterior de S3:', s3Error);
+                    // No detenemos el proceso si falla la eliminación
+                }
+            }
+
+            // Actualizar referencias a la nueva imagen
+            noticia.img = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imagenKey}`;
+            noticia.s3_key = imagenKey;
+            noticia.tamanio = req.file.size; // Actualizar tamaño si lo guardas
+
+            // Limpiar archivo temporal
+            fs.unlinkSync(req.file.path);
         }
 
         await noticia.save();
 
-        res.redirect('/admin/vernoticias'); // Redirigir a la lista de noticias
-    } catch (error) {
-        console.error('Error al actualizar la noticia:', error);
-        res.status(500).json({ error: 'Error al actualizar la noticia' });
+        res.redirect('/admin/vernoticias');
+
+    } catch (err) {
+        console.error('Error en el controlador:', err);
+
+        // Limpieza de archivo temporal en caso de error
+        if (req.file?.path) fs.unlinkSync(req.file.path);
+
+        res.status(500).render('admin/editar-noticia', {
+            pagina: 'Editar Noticia',
+            error: 'Error al procesar la solicitud: ' + err.message
+        });
     }
 };
 
