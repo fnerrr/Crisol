@@ -128,6 +128,10 @@ const actualizarArticulo = async (req, res) => {
         const { id } = req.params;
         const { titulo, contenido, categoria, nombreAutor, ocupacionAutor } = req.body;
 
+        if (!titulo || !contenido || !categoria || !nombreAutor || !ocupacionAutor) {
+            return res.redirect(`/admin/editar-articulo/${id}?error=Faltan campos requeridos`);
+        }
+
         const articulo = await Articulo.findByPk(id);
         if (!articulo) {
             return res.redirect('/admin/verarticulos?error=Artículo no encontrado');
@@ -140,35 +144,98 @@ const actualizarArticulo = async (req, res) => {
         articulo.nombreAutor = nombreAutor;
         articulo.ocupacionAutor = ocupacionAutor;
 
-        // Manejar imágenes si se subieron nuevas
-        if (req.files['img']) {
-            // Eliminar imagen anterior si existe
-            if (articulo.img) {
-                const oldPath = path.join(process.cwd(), 'public', articulo.img);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
+        // Manejar imagen principal si se subió nueva
+        if (req.files && req.files['img'] && req.files['img'][0]) {
+            const img = req.files['img'][0];
+            
+            // 1. Subir nueva imagen primero (para evitar dejar el artículo sin imagen si falla)
+            const imgKey = `articulos/${Date.now()}-${img.originalname}`;
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: imgKey,
+                Body: fs.createReadStream(img.path),
+                ContentType: img.mimetype,
+                ACL: 'public-read' // Asegurar permisos de lectura
+            }));
+
+            // 2. Eliminar imagen anterior solo después de que la nueva se subió correctamente
+            if (articulo.img_s3_key) {
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: articulo.img_s3_key
+                    }));
+                } catch (s3Error) {
+                    console.error('Error al eliminar imagen anterior de S3:', s3Error);
+                    // No fallar la operación completa por esto
                 }
             }
-            articulo.img = `/uploads/${req.files['img'][0].filename}`;
+
+            // 3. Actualizar referencias
+            articulo.img = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imgKey}`;
+            articulo.img_s3_key = imgKey;
+
+            // 4. Eliminar archivo temporal
+            fs.unlinkSync(img.path);
         }
 
-        if (req.files['imgAutor']) {
-            // Eliminar imagen anterior si existe
-            if (articulo.imgAutor) {
-                const oldPath = path.join(process.cwd(), 'public', articulo.imgAutor);
-                if (fs.existsSync(oldPath)) {
-                    fs.unlinkSync(oldPath);
+        // Manejar imagen de autor si se subió nueva
+        if (req.files && req.files['imgAutor'] && req.files['imgAutor'][0]) {
+            const imgAutor = req.files['imgAutor'][0];
+            
+            // 1. Subir nueva imagen primero
+            const imgAutorKey = `autores/${Date.now()}-${imgAutor.originalname}`;
+            await s3Client.send(new PutObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: imgAutorKey,
+                Body: fs.createReadStream(imgAutor.path),
+                ContentType: imgAutor.mimetype,
+                ACL: 'public-read'
+            }));
+
+            // 2. Eliminar imagen anterior
+            if (articulo.imgAutor_s3_key) {
+                try {
+                    await s3Client.send(new DeleteObjectCommand({
+                        Bucket: process.env.AWS_BUCKET_NAME,
+                        Key: articulo.imgAutor_s3_key
+                    }));
+                } catch (s3Error) {
+                    console.error('Error al eliminar imagen de autor anterior de S3:', s3Error);
                 }
             }
-            articulo.imgAutor = `/uploads/${req.files['imgAutor'][0].filename}`;
+
+            // 3. Actualizar referencias
+            articulo.imgAutor = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${imgAutorKey}`;
+            articulo.imgAutor_s3_key = imgAutorKey;
+
+            // 4. Eliminar archivo temporal
+            fs.unlinkSync(imgAutor.path);
         }
 
         await articulo.save();
         
         return res.redirect('/admin/verarticulos?success=Artículo actualizado correctamente');
     } catch (error) {
-        console.error('Error:', error);
-        return res.redirect(`/admin/editar-articulo/${req.params.id}?error=${encodeURIComponent(error.message)}`);
+        console.error('Error al actualizar artículo:', error);
+        
+        // Limpieza de archivos temporales en caso de error
+        if (req.files) {
+            Object.values(req.files).forEach(fileArray => {
+                fileArray.forEach(file => {
+                    try {
+                        if (fs.existsSync(file.path)) {
+                            fs.unlinkSync(file.path);
+                        }
+                    } catch (unlinkError) {
+                        console.error('Error al eliminar archivo temporal:', unlinkError);
+                    }
+                });
+            });
+        }
+
+        const errorMessage = error.message || 'Error al actualizar el artículo';
+        return res.redirect(`/admin/editar-articulo/${req.params.id}?error=${encodeURIComponent(errorMessage)}`);
     }
 };
 
